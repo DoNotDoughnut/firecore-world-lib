@@ -1,0 +1,20 @@
+[package]
+name = "firecore-world"
+version = "0.1.0"
+authors = ["Rhys Holloway <rhyswilliamholloway@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+firecore-util = { git = "https://github.com/DoNotDoughnut/firecore-util" }
+firecore-audio = { git = "https://github.com/DoNotDoughnut/firecore-audio" } # Try to remove
+firecore-pokedex = { git = "https://github.com/DoNotDoughnut/firecore-pokedex" } # Maybe try to remove
+
+quad-rand = "0.2.1"
+
+serde = { version = "1.0", features = ["derive"] }
+
+ahash = { version = "0.7", features = ["serde"] }
+smallvec = { version = "1.6", features = ["serde"] }
