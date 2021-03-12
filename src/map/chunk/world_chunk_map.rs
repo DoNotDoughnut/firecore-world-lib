@@ -1,7 +1,6 @@
 use firecore_util::GlobalPosition;
 use serde::{Deserialize, Serialize};
 use ahash::AHashMap as HashMap;
-use firecore_audio::music::Music;
 
 use crate::MovementId;
 use crate::TileId;
@@ -11,16 +10,13 @@ use crate::warp::WarpEntry;
 
 use super::WorldChunk;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Default, Deserialize, Serialize)]
 pub struct WorldChunkMap {
 
     pub chunks: HashMap<u16, WorldChunk>,
 
     #[serde(skip)]
-    current_chunk: u16,
-
-    #[serde(skip)]
-    pub current_music: Music,
+    pub current_chunk: u16,
 
 }
 
@@ -30,7 +26,6 @@ impl WorldChunkMap {
         Self {
             chunks: HashMap::new(),
             current_chunk: 2,
-            current_music: Music::default(),
         }
     }
 
@@ -50,13 +45,7 @@ impl WorldChunkMap {
                 player_pos.local.coords.y = player_pos.get_y() - chunk1.y;
                 player_pos.offset.x = chunk1.x;
                 player_pos.offset.y = chunk1.y;
-            }
-            // debug!("Entered chunk: {}", chunk1.map.name);
-            let music = self.current_chunk().map.music;
-            if music != self.current_music {
-                self.current_music = music;
-                firecore_audio::play_music(music);
-            }
+            }            
         }
         
     }

@@ -9,7 +9,6 @@ edition = "2018"
 [dependencies]
 
 firecore-util = { git = "https://github.com/DoNotDoughnut/firecore-util" }
-firecore-audio = { git = "https://github.com/DoNotDoughnut/firecore-audio" } # Try to remove
 firecore-pokedex = { git = "https://github.com/DoNotDoughnut/firecore-pokedex" } # Maybe try to remove
 
 quad-rand = "0.2.1"

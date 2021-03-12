@@ -1,6 +1,6 @@
 use firecore_util::Coordinate;
 use serde::{Deserialize, Serialize};
-use firecore_audio::music::Music;
+use firecore_util::music::Music;
 
 use ahash::AHashMap as HashMap;
 

@@ -9,7 +9,7 @@ pub struct Trainer {
     pub trainer_type: TrainerType,
 
     pub tracking_length: Option<usize>,
-    pub encounter_music: Option<firecore_audio::music::Music>,
+    pub encounter_music: Option<firecore_util::music::Music>,
     pub encounter_message: Vec<Vec<String>>, // MessageSet
 
     pub battle_transition: Option<BattleScreenTransitions>,
