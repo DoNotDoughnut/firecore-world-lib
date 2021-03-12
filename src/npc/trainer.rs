@@ -82,6 +82,7 @@ pub struct TrainerData {
 
     pub name: String,
     pub npc_type: String,
+    #[serde(default)]
     pub transition: BattleScreenTransitions,
 
 }

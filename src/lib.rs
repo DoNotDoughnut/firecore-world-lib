@@ -25,6 +25,7 @@ pub trait World {
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct BattleData {
 
+    #[serde(default)]
     pub battle_type: BattleType,
     pub party: firecore_pokedex::pokemon::party::PokemonParty,
     pub trainer_data: Option<npc::trainer::TrainerData>,

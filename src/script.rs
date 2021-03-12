@@ -57,7 +57,7 @@ pub enum WorldActionKind {
     DisplayText {
         message_set: MessageSet,
     },
-    TrainerBattle(BattleData),
+    Battle(BattleData),
 
 }
 
