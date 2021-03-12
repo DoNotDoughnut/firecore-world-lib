@@ -22,7 +22,16 @@ pub trait World {
 
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+pub struct BattleData {
+
+    pub battle_type: BattleType,
+    pub party: firecore_pokedex::pokemon::party::PokemonParty,
+    pub trainer_data: Option<npc::trainer::TrainerData>,
+
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum BattleType { // move somewhere else
 
     Wild,

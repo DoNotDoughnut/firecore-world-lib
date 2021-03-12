@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use firecore_util::{Coordinate, BoundingBox};
 use firecore_util::Entity;
+use crate::BattleData;
 use crate::npc::NPC;
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -51,15 +52,12 @@ pub enum WorldActionKind {
         id: u8,
         pos: Coordinate,
     },
-    MoveNPCToPlayer {
-        id: u8,
-    },
-    DespawnNPC {
-        id: u8,
-    },
+    MoveNPCToPlayer(u8),
+    DespawnNPC(u8),
     DisplayText {
         message_set: MessageSet,
     },
+    TrainerBattle(BattleData),
 
 }
 

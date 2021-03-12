@@ -76,3 +76,12 @@ impl std::fmt::Display for TrainerType {
         })
     }
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TrainerData {
+
+    pub name: String,
+    pub npc_type: String,
+    pub transition: BattleScreenTransitions,
+
+}
