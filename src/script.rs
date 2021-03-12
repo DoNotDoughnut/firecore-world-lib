@@ -1,5 +1,6 @@
 use std::collections::VecDeque;
 
+use firecore_util::Direction;
 use firecore_util::text::MessageSet;
 use serde::{Deserialize, Serialize};
 
@@ -44,19 +45,27 @@ pub enum WorldActionKind {
     FreezePlayer,
     UnfreezePlayer,
 
-    SpawnNPC {
+    NPCSpawn {
         id: u8,
         npc: NPC,
     },
-    MoveNPC {
+    NPCLook {
+        id: u8,
+        direction: Direction,
+    },
+    NPCMove {
         id: u8,
         pos: Coordinate,
     },
-    MoveNPCToPlayer(u8),
-    DespawnNPC(u8),
+    NPCMoveToPlayer(u8),
+    NPCInteract(u8),
+    NPCBattle(u8),
+    NPCDespawn(u8),
+
     DisplayText {
         message_set: MessageSet,
     },
+
     Battle(BattleData),
 
 }
