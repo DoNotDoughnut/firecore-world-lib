@@ -10,7 +10,7 @@ use firecore_util::{Coordinate, BoundingBox};
 use firecore_util::Entity;
 use crate::BattleData;
 use crate::npc::NPC;
-use crate::warp::WarpEntry;
+use crate::warp::WarpDestination;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub enum Condition {
@@ -52,7 +52,7 @@ pub enum WorldActionKind {
     PlayerFreeze,
     PlayerUnfreeze,
 
-    Warp(WarpEntry),
+    Warp(WarpDestination),
 
     NPCSpawn {
         id: u8,
