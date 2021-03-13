@@ -45,7 +45,8 @@ pub enum WorldActionKind {
     Wait(f32),
 
     PlayMusic(Music),
-    // PlaySound(Sound),
+    PlayMapMusic,
+    PlaySound(Sound),
 
     PlayerFreeze,
     PlayerUnfreeze,
