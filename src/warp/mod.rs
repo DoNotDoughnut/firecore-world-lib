@@ -1,7 +1,7 @@
 use firecore_util::BoundingBox;
 use serde::{Serialize, Deserialize};
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WarpEntry {
     
     pub location: BoundingBox,
@@ -9,7 +9,7 @@ pub struct WarpEntry {
     pub destination: WarpDestination, // world_id, map_set_id OR "world" for overworld map
 
 }
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WarpDestination {
 
     // pub world_id: String,
