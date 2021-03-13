@@ -50,33 +50,33 @@ pub struct WorldMap {
 
 impl World for WorldMap {
 
-    fn in_bounds(&self, x: isize, y: isize) -> bool {
-        return !(x < 0 || (x as u16) >= self.width || y < 0 || (y as u16) >= self.height);
+    fn in_bounds(&self, coords: &Coordinate) -> bool {
+        return !(coords.x < 0 || (coords.x as MapSize) >= self.width || coords.y < 0 || (coords.y as MapSize) >= self.height);
     }
 
-    fn tile(&self, x: isize, y: isize) -> TileId {
-        self.tile_map[x as usize + y as usize * self.width as usize]
+    fn tile(&self, coords: &Coordinate) -> TileId {
+        self.tile_map[coords.x as usize + coords.y as usize * self.width as usize]
     }
 
-    fn walkable(&self, x: isize, y: isize) -> MovementId {
+    fn walkable(&self, coords: &Coordinate) -> MovementId {
         for npc in &self.npcs {
-            if npc.position.coords.y == y && npc.position.coords.x == x {
+            if npc.position.coords.eq(coords) {
                 return 1;
             }
         }
         for npc in self.script_npcs.values() {
-            if npc.position.coords.y == y && npc.position.coords.x == x {
+            if npc.position.coords.eq(coords) {
                 return 1;
             }
         }
         for object in self.objects.values() {
             if object.active {
-                if object.location.y == y && object.location.x == x {
+                if object.location.eq(coords) {
                     return 1;
                 }
             }
         }
-        self.movement_map[x as usize + y as usize * self.width as usize]
+        self.movement_map[coords.x as usize + coords.y as usize * self.width as usize]
     }
 
     fn check_warp(&self, coords: &Coordinate) -> Option<WarpEntry> {

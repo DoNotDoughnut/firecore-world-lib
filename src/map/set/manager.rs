@@ -60,16 +60,16 @@ impl WorldMapSetManager {
 
 impl World for WorldMapSetManager {
 
-    fn in_bounds(&self, x: isize, y: isize) -> bool {
-        self.map_set().in_bounds(x, y)
+    fn in_bounds(&self, coords: &Coordinate) -> bool {
+        self.map_set().in_bounds(coords)
     }
 
-    fn tile(&self, x: isize, y: isize) -> u16 {
-        self.map_set().tile(x, y)
+    fn tile(&self, coords: &Coordinate) -> u16 {
+        self.map_set().tile(coords)
     }
 
-    fn walkable(&self, x: isize, y: isize) -> u8 {
-        self.map_set().walkable(x, y)
+    fn walkable(&self, coords: &Coordinate) -> u8 {
+        self.map_set().walkable(coords)
     }
 
     fn check_warp(&self, coords: &Coordinate) -> Option<WarpEntry> {

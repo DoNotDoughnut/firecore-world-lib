@@ -14,11 +14,11 @@ pub type MapSize = u16;
 
 pub trait World {
 
-    fn in_bounds(&self, x: isize, y: isize) -> bool;
+    fn in_bounds(&self, coords: &Coordinate) -> bool;
 
-    fn tile(&self, x: isize, y: isize) -> TileId;
+    fn tile(&self, coords: &Coordinate) -> TileId;
 
-    fn walkable(&self, x: isize, y: isize) -> MovementId;
+    fn walkable(&self, coords: &Coordinate) -> MovementId;
 
     fn check_warp(&self, coords: &Coordinate) -> Option<warp::WarpEntry>;
 

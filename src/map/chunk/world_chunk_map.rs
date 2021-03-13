@@ -51,19 +51,19 @@ impl WorldChunkMap {
         
     }
 
-    pub fn chunk_at(&self, x: isize, y: isize) -> Option<(&u16, &WorldChunk)> {
+    pub fn chunk_at(&self, coords: &Coordinate) -> Option<(&u16, &WorldChunk)> {
         for chunk in &self.chunks {
-            if chunk.1.in_bounds(x, y) {
+            if chunk.1.in_bounds(coords) {
                 return Some(chunk);
             }
         }
         None
     }
 
-    pub fn chunk_id_at(&self, x: isize, y: isize) -> Option<u16> {
-        for chunk in &self.chunks {
-            if chunk.1.in_bounds(x - chunk.1.x, y - chunk.1.y) {
-                return Some(*chunk.0);
+    pub fn chunk_id_at(&self, coords: &Coordinate) -> Option<u16> {
+        for (id, chunk) in &self.chunks {
+            if chunk.in_bounds(&coords.subtract(chunk.x, chunk.y)) {
+                return Some(*id);
             }
         }
         None
@@ -98,14 +98,13 @@ impl WorldChunkMap {
         return tiles;
     }
 
-    pub fn walk_connections(&mut self, player_pos: &mut GlobalPosition, x: isize, y: isize) -> MovementId {
+    pub fn walk_connections(&mut self, player_pos: &mut GlobalPosition, coords: &Coordinate) -> MovementId {
         let mut move_code = 1;
         let mut chunk = None;
         for connection in self.connections() {
-            let x = x - connection.1.x;
-            let y = y - connection.1.y;
-            if connection.1.in_bounds(x, y) {
-                move_code = connection.1.walkable(x, y);
+            let coords = coords.subtract(connection.1.x, connection.1.y);
+            if connection.1.in_bounds(&coords) {
+                move_code = connection.1.walkable(&coords);
                 chunk = Some(*connection.0);
             }
         }
@@ -121,40 +120,39 @@ impl WorldChunkMap {
 
 impl World for WorldChunkMap {
 
-    fn in_bounds(&self, x: isize, y: isize) -> bool {
-        self.current_chunk().in_bounds(x, y)
+    fn in_bounds(&self, coords: &Coordinate) -> bool {
+        self.current_chunk().in_bounds(coords)
     }
 
-    fn tile(&self, x: isize, y: isize) -> TileId {
-        if let Some(tile) = self.current_chunk().safe_tile(x, y) {
+    fn tile(&self, coords: &Coordinate) -> TileId {
+        if let Some(tile) = self.current_chunk().safe_tile(coords) {
             return tile;
         } else {
             let current_chunk = self.current_chunk();
             for connection in &current_chunk.connections {
                 let chunk = self.chunks.get(connection).expect("Could not get current chunk");
-                if let Some(tile) = chunk.safe_tile(x, y) {
+                if let Some(tile) = chunk.safe_tile(coords) {
                     return tile;
                 }
             }
-            if y % 2 == 0 {
-                if x % 2 == 0 {
+            if coords.y % 2 == 0 {
+                if coords.x % 2 == 0 {
                     current_chunk.map.border_blocks[0]
                 } else {
                     current_chunk.map.border_blocks[2]
                 }
             } else {
-                if x % 2 == 0 {
+                if coords.x % 2 == 0 {
                     current_chunk.map.border_blocks[1]
                 } else {
                     current_chunk.map.border_blocks[3]
                 }
             }
-
         }
     }
 
-    fn walkable(&self, x: isize, y: isize) -> MovementId {
-        self.current_chunk().walkable(x, y)  
+    fn walkable(&self, coords: &Coordinate) -> MovementId {
+        self.current_chunk().walkable(coords)  
     }
 
     fn check_warp(&self, coords: &Coordinate) -> Option<WarpEntry> {

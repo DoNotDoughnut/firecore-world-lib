@@ -43,17 +43,17 @@ impl WorldMapSet {
 
 impl World for WorldMapSet {
 
-    fn in_bounds(&self, x: isize, y: isize) -> bool {
-        self.maps[self.current_map].in_bounds(x, y)
+    fn in_bounds(&self, coords: &Coordinate) -> bool {
+        self.maps[self.current_map].in_bounds(coords)
     }
 
-    fn tile(&self, x: isize, y: isize) -> TileId {
-        self.maps[self.current_map].tile(x, y)
+    fn tile(&self, coords: &Coordinate) -> TileId {
+        self.maps[self.current_map].tile(coords)
     }
 
-    fn walkable(&self, x: isize, y: isize) -> MovementId {
-        if self.in_bounds(x, y) {
-            self.maps[self.current_map].walkable(x, y)
+    fn walkable(&self, coords: &Coordinate) -> MovementId {
+        if self.in_bounds(coords) {
+            self.maps[self.current_map].walkable(coords)
         } else {
             1
         }
