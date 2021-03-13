@@ -1,6 +1,8 @@
 use std::collections::VecDeque;
 
 use firecore_util::Direction;
+use firecore_util::music::Music;
+use firecore_util::sound::Sound;
 use firecore_util::text::MessageSet;
 use serde::{Deserialize, Serialize};
 
@@ -42,8 +44,11 @@ pub enum WorldActionKind {
 
     Wait(f32),
 
-    FreezePlayer,
-    UnfreezePlayer,
+    PlayMusic(Music),
+    // PlaySound(Sound),
+
+    PlayerFreeze,
+    PlayerUnfreeze,
 
     NPCSpawn {
         id: u8,
@@ -54,6 +59,10 @@ pub enum WorldActionKind {
         direction: Direction,
     },
     NPCMove {
+        id: u8,
+        pos: Coordinate,
+    },
+    NPCLeadPlayer {
         id: u8,
         pos: Coordinate,
     },
