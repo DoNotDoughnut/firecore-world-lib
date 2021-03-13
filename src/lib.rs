@@ -1,9 +1,11 @@
+use firecore_util::Coordinate;
 use serde::{Deserialize, Serialize};
 
 pub mod map;
-pub mod npc;
+pub mod wild;
 pub mod warp;
-pub mod pokemon;
+pub mod map_object;
+pub mod npc;
 pub mod script;
 
 pub type TileId = u16;
@@ -18,7 +20,7 @@ pub trait World {
 
     fn walkable(&self, x: isize, y: isize) -> MovementId;
 
-    fn check_warp(&self, x: isize, y: isize) -> Option<warp::WarpEntry>;
+    fn check_warp(&self, coords: &Coordinate) -> Option<warp::WarpEntry>;
 
 }
 

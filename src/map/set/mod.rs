@@ -1,3 +1,4 @@
+use firecore_util::Coordinate;
 use serde::{Deserialize, Serialize};
 
 use crate::MovementId;
@@ -58,8 +59,8 @@ impl World for WorldMapSet {
         }
     }
 
-    fn check_warp(&self, x: isize, y: isize) -> Option<WarpEntry> {
-        self.maps[self.current_map].check_warp(x, y)
+    fn check_warp(&self, coords: &Coordinate) -> Option<WarpEntry> {
+        self.maps[self.current_map].check_warp(coords)
     }
 
 }

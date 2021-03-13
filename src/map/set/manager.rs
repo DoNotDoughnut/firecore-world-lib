@@ -1,3 +1,4 @@
+use firecore_util::Coordinate;
 use serde::{Serialize, Deserialize};
 use ahash::AHashMap as HashMap;
 
@@ -71,8 +72,8 @@ impl World for WorldMapSetManager {
         self.map_set().walkable(x, y)
     }
 
-    fn check_warp(&self, x: isize, y: isize) -> Option<WarpEntry> {
-        self.map_set().check_warp(x, y)
+    fn check_warp(&self, coords: &Coordinate) -> Option<WarpEntry> {
+        self.map_set().check_warp(coords)
     }
 
 }

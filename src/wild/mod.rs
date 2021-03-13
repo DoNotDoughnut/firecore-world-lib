@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use self::wild_pokemon_table::WildPokemonTable;
+use self::table::WildPokemonTable;
 
-pub mod wild_pokemon_encounter;
-pub mod wild_pokemon_table;
+pub mod encounter;
+pub mod table;
 
 #[derive(Serialize, Deserialize)]
 pub struct WildEntry {

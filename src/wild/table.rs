@@ -1,6 +1,6 @@
 use firecore_pokedex::PokemonId;
 use firecore_pokedex::pokemon::data::StatSet;
-use super::wild_pokemon_encounter::WildPokemonEncounter;
+use super::encounter::WildPokemonEncounter;
 use firecore_pokedex::pokemon::instance::PokemonInstance;
 
 pub static DEFAULT_ENCOUNTER_CHANCE: u8 = 21;

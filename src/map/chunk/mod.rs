@@ -1,3 +1,4 @@
+use firecore_util::Coordinate;
 use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
 
@@ -55,8 +56,8 @@ impl World for WorldChunk {
         }        
     }
 
-    fn check_warp(&self, x: isize, y: isize) -> Option<WarpEntry> {
-        self.map.check_warp(x, y)
+    fn check_warp(&self, coords: &Coordinate) -> Option<WarpEntry> {
+        self.map.check_warp(coords)
     }
 
 }

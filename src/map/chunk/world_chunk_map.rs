@@ -1,3 +1,4 @@
+use firecore_util::Coordinate;
 use firecore_util::GlobalPosition;
 use serde::{Deserialize, Serialize};
 use ahash::AHashMap as HashMap;
@@ -156,8 +157,8 @@ impl World for WorldChunkMap {
         self.current_chunk().walkable(x, y)  
     }
 
-    fn check_warp(&self, x: isize, y: isize) -> Option<WarpEntry> {
-        self.current_chunk().check_warp(x, y)
+    fn check_warp(&self, coords: &Coordinate) -> Option<WarpEntry> {
+        self.current_chunk().check_warp(coords)
     }
     
 }

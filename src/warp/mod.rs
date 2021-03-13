@@ -1,10 +1,10 @@
+use firecore_util::BoundingBox;
 use serde::{Serialize, Deserialize};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct WarpEntry {
     
-    pub x: isize, // change to bounding box
-    pub y: isize,
+    pub location: BoundingBox,
 
     pub destination: WarpDestination, // world_id, map_set_id OR "world" for overworld map
 

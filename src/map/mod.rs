@@ -8,8 +8,9 @@ use crate::MapSize;
 use crate::MovementId;
 use crate::TileId;
 use crate::World;
+use crate::map_object::MapObject;
 use crate::npc::NPC;
-use crate::pokemon::WildEntry;
+use crate::wild::WildEntry;
 use crate::script::WorldScript;
 use crate::warp::WarpEntry;
 
@@ -32,23 +33,18 @@ pub struct WorldMap {
     pub movement_map: Vec<MovementId>,
 
     pub fly_position: Coordinate,
-    // pub draw_color: Option<macroquad::prelude::Color>,
 
     pub wild: Option<WildEntry>,
-
     pub warps: Vec<WarpEntry>,
+    pub objects: HashMap<u8, MapObject>,
     pub npcs: Vec<NPC>,
-    
-    #[serde(skip)]
-    pub npc_active: Option<usize>,
-
-    // Scripts
-
     pub scripts: Vec<WorldScript>,
 
     #[serde(skip)]
+    pub npc_active: Option<usize>,
+
+    #[serde(skip)]
     pub script_npcs: HashMap<u8, NPC>,
-    // pub script_manager: MapScriptManager,
 
 }
 
@@ -73,15 +69,20 @@ impl World for WorldMap {
                 return 1;
             }
         }
+        for object in self.objects.values() {
+            if object.active {
+                if object.location.y == y && object.location.x == x {
+                    return 1;
+                }
+            }
+        }
         self.movement_map[x as usize + y as usize * self.width as usize]
     }
 
-    fn check_warp(&self, x: isize, y: isize) -> Option<WarpEntry> {
+    fn check_warp(&self, coords: &Coordinate) -> Option<WarpEntry> {
         for warp in &self.warps {
-            if warp.x == x {
-                if warp.y == y {
-                    return Some(warp.clone());
-                }
+            if warp.location.in_bounds(&coords) {
+                return Some(warp.clone());
             }
         }
         return None;
