@@ -1,5 +1,6 @@
 use std::collections::VecDeque;
 
+use firecore_pokedex::pokemon::instance::PokemonInstance;
 use firecore_util::Direction;
 use firecore_util::music::Music;
 use firecore_util::sound::Sound;
@@ -51,6 +52,8 @@ pub enum WorldActionKind {
 
     PlayerFreeze,
     PlayerUnfreeze,
+    PlayerMove(Coordinate),
+    PlayerGivePokemon(PokemonInstance),
 
     Warp(WarpDestination),
 
