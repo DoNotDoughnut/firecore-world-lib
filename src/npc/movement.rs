@@ -25,11 +25,8 @@ impl NPCDestination {
     pub fn next_to(from: &Position, to: &Coordinate) -> Self {
         let direction = from.coords.towards(to);
         // macroquad::prelude::debug!("Trainer direction: {:?}. \n Trying to go to {:?}", direction, to);
-        let offset = direction.inverse().offset();
-        let coords = Coordinate {
-            x: to.x + offset.0 as isize,
-            y: to.y + offset.1 as isize,
-        };
+        let (x, y) = direction.inverse().tile_offset();
+        let coords = to.add(x, y);
         NPCDestination {
             coords,
             direction,
@@ -74,18 +71,18 @@ impl NPC {
                 };
             }
 
-            let offsets = self.position.direction.offset();
+            let offsets = self.position.direction.offset_f32();
             let offset = 60.0 * self.speed * delta;
-            self.position.offset.x += offsets.0 * offset;
-            self.position.offset.y += offsets.1 * offset;
+            self.position.offset.x += offsets.x * offset;
+            self.position.offset.y += offsets.y * offset;
 
-            if self.position.offset.y * offsets.1 >= 16.0 {
-                self.position.coords.y += offsets.1 as isize;
+            if self.position.offset.y * offsets.y >= 16.0 {
+                self.position.coords.y += offsets.y as isize;
                 self.position.offset.y = 0.0;
             }
             
-            if self.position.offset.x * offsets.0 >= 16.0 {
-                self.position.coords.x += offsets.0 as isize;
+            if self.position.offset.x * offsets.x >= 16.0 {
+                self.position.coords.x += offsets.x as isize;
                 self.position.offset.x = 0.0;
             }
             
