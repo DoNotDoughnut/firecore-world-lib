@@ -38,7 +38,7 @@ impl WorldMapSetManager {
     }
 
     pub fn tiles(&self) -> Vec<crate::TileId> {
-        let mut tiles = Vec::new();
+        let mut tiles = Vec::with_capacity(500);
         for map_set in self.map_sets.values() {
             for map in &map_set.maps {
                 for tile_id in &map.tile_map {

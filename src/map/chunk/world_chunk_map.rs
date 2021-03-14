@@ -82,7 +82,7 @@ impl WorldChunkMap {
     }
 
     pub fn tiles(&self) -> Vec<crate::TileId> {
-        let mut tiles = Vec::new();
+        let mut tiles = Vec::with_capacity(1000);
         for chunk in self.chunks.values() {
             for tile_id in &chunk.map.tile_map {
                 if !tiles.contains(tile_id) {

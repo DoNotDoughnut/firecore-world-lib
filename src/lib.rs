@@ -8,6 +8,8 @@ pub mod map_object;
 pub mod npc;
 pub mod script;
 
+pub mod serialized;
+
 pub type TileId = u16;
 pub type MovementId = u8;
 pub type MapSize = u16;
