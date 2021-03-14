@@ -10,7 +10,8 @@ use serde::{Deserialize, Serialize};
 use firecore_util::{Coordinate, BoundingBox};
 use firecore_util::Entity;
 use crate::BattleData;
-use crate::npc::NPC;
+use crate::character::movement::Destination;
+use crate::character::npc::NPC;
 use crate::warp::WarpDestination;
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -52,6 +53,7 @@ pub enum WorldActionKind {
 
     PlayerFreeze,
     PlayerUnfreeze,
+    PlayerLook(Direction),
     PlayerMove(Coordinate),
     PlayerGivePokemon(PokemonInstance),
 
@@ -67,11 +69,11 @@ pub enum WorldActionKind {
     },
     NPCMove {
         id: u8,
-        pos: Coordinate,
+        pos: Destination,
     },
     NPCLeadPlayer {
         id: u8,
-        pos: Coordinate,
+        pos: Destination,
     },
     NPCMoveToPlayer(u8),
     NPCInteract(u8),

@@ -1,3 +1,5 @@
+use character::npc::trainer::TrainerData;
+use firecore_pokedex::pokemon::party::PokemonParty;
 use firecore_util::Coordinate;
 use serde::{Deserialize, Serialize};
 
@@ -5,7 +7,7 @@ pub mod map;
 pub mod wild;
 pub mod warp;
 pub mod map_object;
-pub mod npc;
+pub mod character;
 pub mod script;
 
 pub mod serialized;
@@ -31,8 +33,8 @@ pub struct BattleData {
 
     #[serde(default)]
     pub battle_type: BattleType,
-    pub party: firecore_pokedex::pokemon::party::PokemonParty,
-    pub trainer_data: Option<npc::trainer::TrainerData>,
+    pub party: PokemonParty,
+    pub trainer_data: Option<TrainerData>,
 
 }
 

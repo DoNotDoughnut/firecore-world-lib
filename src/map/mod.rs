@@ -9,7 +9,7 @@ use crate::MovementId;
 use crate::TileId;
 use crate::World;
 use crate::map_object::MapObject;
-use crate::npc::NPC;
+use crate::character::npc::NPC;
 use crate::wild::WildEntry;
 use crate::script::WorldScript;
 use crate::warp::WarpEntry;
