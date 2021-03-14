@@ -27,8 +27,6 @@ pub struct NPCType {
 pub struct Palette {
 
     pub id: u8,
-    pub bottom_width: u16,
-    pub bottom_height: u16,
-    pub bottom_bytes: Vec<u8>,
+    pub bottom: Vec<u8>,
 
 }
