@@ -7,7 +7,6 @@ use firecore_util::sound::Sound;
 use firecore_util::text::MessageSet;
 use firecore_util::Coordinate;
 
-use crate::BattleData;
 use crate::character::movement::Destination;
 use crate::character::npc::NPC;
 use crate::warp::WarpDestination;
@@ -43,6 +42,6 @@ pub enum WorldActionKind {
 
     DisplayText(MessageSet),
 
-    Battle(BattleData),
+    // Battle(BattleType, ),
 
 }

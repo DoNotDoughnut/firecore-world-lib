@@ -2,7 +2,7 @@ use firecore_util::Position;
 use firecore_util::music::Music;
 use firecore_util::text::MessageSet;
 use serde::{Deserialize, Serialize};
-use crate::BattleType;
+use crate::battle::BattleType;
 
 use super::CharacterProperties;
 use super::movement::MovementType;

@@ -1,7 +1,4 @@
-use character::npc::trainer::TrainerData;
-use firecore_pokedex::pokemon::party::PokemonParty;
 use firecore_util::Coordinate;
-use serde::{Deserialize, Serialize};
 
 pub mod map;
 pub mod wild;
@@ -9,6 +6,7 @@ pub mod warp;
 pub mod map_object;
 pub mod character;
 pub mod script;
+pub mod battle;
 
 pub mod serialized;
 
@@ -26,45 +24,6 @@ pub trait World {
 
     fn check_warp(&self, coords: &Coordinate) -> Option<warp::WarpEntry>;
 
-}
-
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
-pub struct BattleData {
-
-    #[serde(default)]
-    pub battle_type: BattleType,
-    pub party: PokemonParty,
-    pub trainer_data: Option<TrainerData>,
-
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-pub enum BattleType { // move somewhere else
-
-    Wild,
-    Trainer,
-    GymLeader,
-
-}
-
-impl Default for BattleType {
-    fn default() -> Self {
-        Self::Wild
-    }
-}
-
-#[derive(Debug, Clone, Copy, Deserialize, Serialize)]
-pub enum BattleScreenTransitions {
-
-    Flash,
-    Trainer,
-
-}
-
-impl Default for BattleScreenTransitions {
-    fn default() -> Self {
-        Self::Flash
-    }
 }
 
 pub fn test_move_code(move_code: u8, jump: bool) -> bool {

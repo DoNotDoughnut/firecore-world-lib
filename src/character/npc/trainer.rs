@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use firecore_pokedex::pokemon::party::PokemonParty;
 
-use crate::BattleScreenTransitions;
+use crate::battle::BattleScreenTransitions;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Trainer {
@@ -19,15 +19,5 @@ pub struct Trainer {
     #[serde(default)]
     pub disable_others: Vec<String>,
     pub worth: u16,
-
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TrainerData {
-
-    pub name: String,
-    pub npc_type: String,
-    #[serde(default)]
-    pub transition: BattleScreenTransitions,
 
 }
