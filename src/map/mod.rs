@@ -11,13 +11,11 @@ use crate::World;
 use crate::map_object::MapObject;
 use crate::character::npc::NPC;
 use crate::wild::WildEntry;
-use crate::script::WorldScript;
+use crate::script::world::WorldScript;
 use crate::warp::WarpEntry;
 
-// pub mod manager;
 pub mod set;
 pub mod chunk;
-
 
 #[derive(Default, Serialize, Deserialize)]
 pub struct WorldMap {
