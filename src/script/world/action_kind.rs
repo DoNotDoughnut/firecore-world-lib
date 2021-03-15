@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 
 use firecore_pokedex::pokemon::instance::PokemonInstance;
 use firecore_util::Direction;
-use firecore_util::music::Music;
 use firecore_util::sound::Sound;
 use firecore_util::text::MessageSet;
 use firecore_util::Coordinate;
@@ -16,7 +15,7 @@ pub enum WorldActionKind {
 
     Wait(f32),
 
-    PlayMusic(Music),
+    PlayMusic(String),
     PlayMapMusic,
     PlaySound(Sound),
 

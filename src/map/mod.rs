@@ -1,6 +1,5 @@
 use firecore_util::Coordinate;
 use serde::{Deserialize, Serialize};
-use firecore_util::music::Music;
 
 use ahash::AHashMap as HashMap;
 
@@ -21,7 +20,7 @@ pub mod chunk;
 pub struct WorldMap {
 
     pub name: String,
-    pub music: Music,
+    pub music: u8, // MusicId
 
     pub width: MapSize,
     pub height: MapSize,

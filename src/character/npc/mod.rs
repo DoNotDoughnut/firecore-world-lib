@@ -1,5 +1,4 @@
 use firecore_util::Position;
-use firecore_util::music::Music;
 use firecore_util::text::MessageSet;
 use serde::{Deserialize, Serialize};
 use crate::battle::BattleType;
@@ -50,6 +49,6 @@ pub struct NPCType {
 pub struct TrainerType {
 
     pub battle_type: BattleType,
-    pub encounter_music: Music,
+    pub encounter_music: String,
 
 }
