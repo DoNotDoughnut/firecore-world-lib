@@ -17,7 +17,6 @@ impl Default for MovementType {
     }
 }
 
-#[serde(from = "Coordinate")]
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Destination {
 
@@ -47,20 +46,20 @@ impl Destination {
 
 }
 
-impl From<Coordinate> for Destination {
-    fn from(coords: Coordinate) -> Self {
-        Self {
-            coords,
-            direction: None,
-        }
-    }
-}
+// impl From<Coordinate> for Destination {
+//     fn from(coords: Coordinate) -> Self {
+//         Self {
+//             coords,
+//             direction: None,
+//         }
+//     }
+// }
 
-impl From<Position> for Destination {
-    fn from(pos: Position) -> Self {
-       Self {
-           coords: pos.coords,
-           direction: Some(pos.direction),
-       }
-    }
-}
+// impl From<Position> for Destination {
+//     fn from(pos: Position) -> Self {
+//        Self {
+//            coords: pos.coords,
+//            direction: Some(pos.direction),
+//        }
+//     }
+// }
