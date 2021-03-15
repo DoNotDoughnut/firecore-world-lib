@@ -17,11 +17,13 @@ impl Default for MovementType {
     }
 }
 
+#[serde(from = "Coordinate")]
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Destination {
 
     pub coords: Coordinate,
-    pub direction: Direction,
+
+    pub direction: Option<Direction>,
 
 }
 
@@ -30,7 +32,7 @@ impl Destination {
     pub fn to(from: &Position, to: &Coordinate) -> Self {
         Self {
             coords: *to,
-            direction: from.coords.towards(&to),
+            direction: Some(from.coords.towards(&to)),
         }
     }
 
@@ -39,8 +41,26 @@ impl Destination {
         let (x, y) = direction.inverse().tile_offset();
         Destination {
             coords: to.add(x, y),
-            direction,
+            direction: Some(direction),
         }
     }
 
+}
+
+impl From<Coordinate> for Destination {
+    fn from(coords: Coordinate) -> Self {
+        Self {
+            coords,
+            direction: None,
+        }
+    }
+}
+
+impl From<Position> for Destination {
+    fn from(pos: Position) -> Self {
+       Self {
+           coords: pos.coords,
+           direction: Some(pos.direction),
+       }
+    }
 }

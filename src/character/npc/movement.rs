@@ -50,7 +50,9 @@ impl NPC {
                 self.position.coords.y += offsets.y as isize;
                 self.position.offset.y = 0.0;
                 if self.position.coords == destination.coords {
-                    self.position.direction = destination.direction;
+                    if let Some(direction) = destination.direction {
+                        self.position.direction = direction;
+                    }
                 }
             }
             
@@ -58,7 +60,9 @@ impl NPC {
                 self.position.coords.x += offsets.x as isize;
                 self.position.offset.x = 0.0;
                 if self.position.coords == destination.coords {
-                    self.position.direction = destination.direction;
+                    if let Some(direction) = destination.direction {
+                        self.position.direction = direction;
+                    }
                 }
             }
             
