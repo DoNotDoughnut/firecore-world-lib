@@ -1,10 +1,13 @@
 use serde::{Deserialize, Serialize};
 
-use firecore_pokedex::pokemon::instance::PokemonInstance;
 use firecore_util::Direction;
-use firecore_util::sound::Sound;
 use firecore_util::text::MessageSet;
 use firecore_util::Coordinate;
+
+use firecore_audio_lib::music::MusicName;
+use firecore_audio_lib::sound::Sound;
+
+use firecore_pokedex::pokemon::instance::PokemonInstance;
 
 use crate::character::movement::Destination;
 use crate::character::npc::NPC;
@@ -15,7 +18,7 @@ pub enum WorldActionKind {
 
     Wait(f32),
 
-    PlayMusic(String),
+    PlayMusic(MusicName),
     PlayMapMusic,
     PlaySound(Sound),
 

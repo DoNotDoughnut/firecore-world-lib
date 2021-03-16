@@ -1,6 +1,6 @@
 [package]
 name = "firecore-world"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Rhys Holloway <rhyswilliamholloway@gmail.com>"]
 edition = "2018"
 
@@ -9,6 +9,7 @@ edition = "2018"
 [dependencies]
 
 firecore-util = { git = "https://github.com/DoNotDoughnut/firecore-util" }
+firecore-audio-lib = { git = "https://github.com/DoNotDoughnut/firecore-audio-lib" }
 firecore-pokedex = { git = "https://github.com/DoNotDoughnut/firecore-pokedex" } # Maybe try to remove
 
 quad-rand = "0.2.1"

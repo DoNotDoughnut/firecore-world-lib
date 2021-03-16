@@ -1,3 +1,4 @@
+use firecore_audio_lib::music::MusicId;
 use firecore_util::Coordinate;
 use serde::{Deserialize, Serialize};
 
@@ -20,7 +21,7 @@ pub mod chunk;
 pub struct WorldMap {
 
     pub name: String,
-    pub music: u8, // MusicId
+    pub music: MusicId,
 
     pub width: MapSize,
     pub height: MapSize,

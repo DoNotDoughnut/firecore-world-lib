@@ -1,3 +1,4 @@
+use firecore_util::Coordinate;
 use serde::{Deserialize, Serialize};
 use firecore_util::{Entity, Timer, BoundingBox};
 
@@ -27,6 +28,14 @@ pub struct WorldScript {
 
     #[serde(skip)]
     pub timer: Timer,
+
+}
+
+impl WorldScript {
+
+    pub fn test_pos(&self, coords: &Coordinate) -> bool {
+        self.location.as_ref().map(|location| location.in_bounds(coords)).unwrap_or(true)
+    }
 
 }
 
