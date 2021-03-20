@@ -1,20 +1,30 @@
 [package]
 name = "firecore-world"
-version = "0.2.0"
+version = "0.3.0-beta.1"
 authors = ["Rhys Holloway <rhyswilliamholloway@gmail.com>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = []
+pathfind = ["indexmap", "num-traits"]
+
 [dependencies]
 
 firecore-util = { git = "https://github.com/DoNotDoughnut/firecore-util" }
-firecore-audio-lib = { git = "https://github.com/DoNotDoughnut/firecore-audio-lib" }
-firecore-pokedex = { git = "https://github.com/DoNotDoughnut/firecore-pokedex" } # Maybe try to remove
+#firecore-util = { path = "../firecore-util" }
 
-quad-rand = "0.2.1"
+firecore-audio-lib = { git = "https://github.com/DoNotDoughnut/firecore-audio-lib" }
+firecore-pokedex = { git = "https://github.com/DoNotDoughnut/firecore-pokedex" }
+
+quad-rand = "0.2.1" # maybe move to own crate
 
 serde = { version = "1.0", features = ["derive"] }
 
 ahash = { version = "0.7", features = ["serde"] }
 smallvec = { version = "1.6", features = ["serde"] }
+
+### pathfinding temporary crates
+indexmap = { version = "1.6", optional = true }
+num-traits = { version = "0.2", optional = true }

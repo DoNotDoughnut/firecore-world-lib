@@ -10,13 +10,17 @@ mod action_kind;
 pub use self::condition::Condition;
 pub use self::action_kind::WorldActionKind;
 
+use super::ScriptId;
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct WorldScript {
     
-    #[serde(default = "default_script_name")]
-    pub identifier: String,
+    pub identifier: ScriptId,
+
     pub location: Option<BoundingBox>,
+
     pub conditions: Vec<Condition>,
+
     actions: VecDeque<WorldActionKind>,
 
     
@@ -52,8 +56,4 @@ impl Entity for WorldScript {
     fn is_alive(&self) -> bool {
         self.alive
     }
-}
-
-fn default_script_name() -> String {
-    String::from("script")
 }

@@ -1,17 +1,16 @@
-use firecore_util::Direction;
+use firecore_util::{Direction, Destination};
 use serde::{Deserialize, Serialize};
-
-use self::movement::Destination;
 
 pub mod movement;
 pub mod npc;
 pub mod sprite;
+pub mod player;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct CharacterProperties {
 
     #[serde(default = "default_speed")]
-    base_speed: f32,
+    pub base_speed: f32,
 
     #[serde(skip, default = "default_speed")]
     pub speed: f32,
@@ -31,17 +30,30 @@ pub struct CharacterProperties {
     #[serde(skip)]
     pub noclip: bool,
 
+    // #[deprecated]
     #[serde(skip)]
     pub destination: Option<Destination>,
 
+    // #[serde(skip)]
+    // pub destination: Option<DestinationPath>,
 
 }
 
 pub trait Character {
 
+    fn update_sprite(&mut self);
+
     fn on_try_move(&mut self, direction: Direction);
 
+    fn stop_move(&mut self);
+
     fn freeze(&mut self);
+
+    fn unfreeze(&mut self);
+
+    fn is_frozen(&self) -> bool;
+
+    // fn start_move_to(&mut self, destination: Destination) -> bool;
 
     fn should_move_to_destination(&self) -> bool;
 

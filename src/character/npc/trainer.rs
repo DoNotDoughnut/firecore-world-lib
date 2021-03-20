@@ -1,13 +1,12 @@
 use serde::{Deserialize, Serialize};
 use firecore_pokedex::pokemon::party::PokemonParty;
-
-use crate::battle::BattleScreenTransitions;
+use firecore_util::battle::BattleScreenTransitions;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Trainer {
 
-    pub tracking_length: Option<usize>,
-    pub encounter_message: Vec<Vec<String>>, // MessageSet
+    pub tracking_length: Option<u8>,
+    pub encounter_message: Vec<Vec<String>>,
 
     #[serde(default)]
     pub battle_transition: BattleScreenTransitions,

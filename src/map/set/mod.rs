@@ -3,10 +3,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::MovementId;
 use crate::TileId;
-use crate::World;
-use crate::warp::WarpEntry;
 
+use super::World;
 use super::WorldMap;
+use super::warp::WarpDestination;
 
 pub mod manager;
 
@@ -43,15 +43,15 @@ impl WorldMapSet {
 
 impl World for WorldMapSet {
 
-    fn in_bounds(&self, coords: &Coordinate) -> bool {
+    fn in_bounds(&self, coords: Coordinate) -> bool {
         self.maps[self.current_map].in_bounds(coords)
     }
 
-    fn tile(&self, coords: &Coordinate) -> TileId {
+    fn tile(&self, coords: Coordinate) -> TileId {
         self.maps[self.current_map].tile(coords)
     }
 
-    fn walkable(&self, coords: &Coordinate) -> MovementId {
+    fn walkable(&self, coords: Coordinate) -> MovementId {
         if self.in_bounds(coords) {
             self.maps[self.current_map].walkable(coords)
         } else {
@@ -59,7 +59,7 @@ impl World for WorldMapSet {
         }
     }
 
-    fn check_warp(&self, coords: &Coordinate) -> Option<WarpEntry> {
+    fn check_warp(&self, coords: Coordinate) -> Option<WarpDestination> {
         self.maps[self.current_map].check_warp(coords)
     }
 

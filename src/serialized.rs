@@ -1,14 +1,12 @@
 use serde::{Deserialize, Serialize};
 
-use crate::character::npc::NPCType;
-use crate::map::chunk::world_chunk_map::WorldChunkMap;
-use crate::map::set::manager::WorldMapSetManager;
+use crate::character::npc::npc_type::NPCType;
+use crate::map::manager::WorldMapManager;
 
 #[derive(Deserialize, Serialize)]
 pub struct SerializedWorld {
 
-    pub chunks: WorldChunkMap,
-    pub map_sets: WorldMapSetManager,
+    pub manager: WorldMapManager,
 
     pub npc_types: Vec<SerializedNPCType>,
     pub palettes: Vec<Palette>,

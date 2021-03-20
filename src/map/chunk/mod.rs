@@ -4,21 +4,20 @@ use smallvec::SmallVec;
 
 use crate::MovementId;
 use crate::TileId;
-use crate::World;
-use crate::warp::WarpEntry;
+
+use crate::map::World;
+use crate::map::warp::WarpDestination;
 
 use super::WorldMap;
 
-
-pub mod world_chunk_map;
+pub mod map;
 
 #[derive(Default, Deserialize, Serialize)]
 pub struct WorldChunk {
 
     pub index: u16,
 
-    pub x: isize,
-    pub y: isize,
+    pub coords: Coordinate,
 
     pub map: WorldMap,
 
@@ -28,7 +27,7 @@ pub struct WorldChunk {
 
 impl WorldChunk {
 
-    pub fn safe_tile(&self, coords: &Coordinate) -> Option<u16> {
+    pub fn safe_tile(&self, coords: Coordinate) -> Option<u16> {
         if self.map.in_bounds(coords) {
             Some(self.map.tile(coords))
         } else {
@@ -40,15 +39,15 @@ impl WorldChunk {
 
 impl World for WorldChunk {
 
-    fn in_bounds(&self, coords: &Coordinate) -> bool {
+    fn in_bounds(&self, coords: Coordinate) -> bool {
         self.map.in_bounds(coords)
     }
 
-    fn tile(&self, coords: &Coordinate) -> TileId {
+    fn tile(&self, coords: Coordinate) -> TileId {
         self.map.tile(coords)
     }
 
-    fn walkable(&self, coords: &Coordinate) -> MovementId {
+    fn walkable(&self, coords: Coordinate) -> MovementId {
         if self.in_bounds(coords) {
             return self.map.walkable(coords);
         } else {
@@ -56,7 +55,7 @@ impl World for WorldChunk {
         }        
     }
 
-    fn check_warp(&self, coords: &Coordinate) -> Option<WarpEntry> {
+    fn check_warp(&self, coords: Coordinate) -> Option<WarpDestination> {
         self.map.check_warp(coords)
     }
 

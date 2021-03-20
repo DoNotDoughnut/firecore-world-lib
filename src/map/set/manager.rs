@@ -2,8 +2,11 @@ use firecore_util::Coordinate;
 use serde::{Serialize, Deserialize};
 use ahash::AHashMap as HashMap;
 
-use crate::World;
-use crate::warp::WarpEntry;
+use crate::MovementId;
+use crate::TileId;
+
+use crate::map::World;
+use crate::map::warp::WarpDestination;
 
 use super::WorldMapSet;
 
@@ -37,7 +40,7 @@ impl WorldMapSetManager {
         self.map_sets.get_mut(&self.current_map_set).expect("Could not get current map set")
     }
 
-    pub fn tiles(&self) -> Vec<crate::TileId> {
+    pub fn tiles(&self) -> Vec<TileId> {
         let mut tiles = Vec::with_capacity(500);
         for map_set in self.map_sets.values() {
             for map in &map_set.maps {
@@ -60,19 +63,19 @@ impl WorldMapSetManager {
 
 impl World for WorldMapSetManager {
 
-    fn in_bounds(&self, coords: &Coordinate) -> bool {
+    fn in_bounds(&self, coords: Coordinate) -> bool {
         self.map_set().in_bounds(coords)
     }
 
-    fn tile(&self, coords: &Coordinate) -> u16 {
+    fn tile(&self, coords: Coordinate) -> TileId {
         self.map_set().tile(coords)
     }
 
-    fn walkable(&self, coords: &Coordinate) -> u8 {
+    fn walkable(&self, coords: Coordinate) -> MovementId {
         self.map_set().walkable(coords)
     }
 
-    fn check_warp(&self, coords: &Coordinate) -> Option<WarpEntry> {
+    fn check_warp(&self, coords: Coordinate) -> Option<WarpDestination> {
         self.map_set().check_warp(coords)
     }
 
