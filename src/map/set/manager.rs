@@ -33,7 +33,12 @@ impl WorldMapSetManager {
     }
 
     pub fn map_set(&self) -> &WorldMapSet {
-        self.map_sets.get(&self.current_map_set).expect("Could not get current map set")
+        match self.map_sets.get(&self.current_map_set) {
+            Some(map_set) => map_set,
+            None => {
+                panic!("Could not get current map set {}", self.current_map_set)
+            }
+        }
     }
 
     pub fn map_set_mut(&mut self) -> &mut WorldMapSet {
@@ -64,19 +69,19 @@ impl WorldMapSetManager {
 impl World for WorldMapSetManager {
 
     fn in_bounds(&self, coords: Coordinate) -> bool {
-        self.map_set().in_bounds(coords)
+        self.map_sets.get(&self.current_map_set).map(|map_set| map_set.in_bounds(coords)).unwrap_or(false)
     }
 
     fn tile(&self, coords: Coordinate) -> Option<TileId> {
-        self.map_set().tile(coords)
+        self.map_sets.get(&self.current_map_set).map(|map_set| map_set.tile(coords)).unwrap_or_default()
     }
 
     fn walkable(&self, coords: Coordinate) -> MovementId {
-        self.map_set().walkable(coords)
+        self.map_sets.get(&self.current_map_set).map(|map_set| map_set.walkable(coords)).unwrap_or(1)
     }
 
     fn check_warp(&self, coords: Coordinate) -> Option<WarpDestination> {
-        self.map_set().check_warp(coords)
+        self.map_sets.get(&self.current_map_set).map(|map_set| map_set.check_warp(coords)).unwrap_or_default()
     }
 
 }

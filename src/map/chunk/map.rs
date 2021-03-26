@@ -76,7 +76,7 @@ impl WorldChunkMap {
     }
 
     pub fn connections(&self) -> Vec<(&u16, &WorldChunk)> {
-        self.current_chunk().connections.iter().map(|connection| (connection, self.chunks.get(connection).expect("Could not get connected chunks"))).collect()
+        self.chunks.get(&self.current_chunk).expect("Could not get current chunk").connections.iter().map(|connection| (connection, self.chunks.get(connection).expect("Could not get connected chunks"))).collect()
     }
 
     pub fn tiles(&self) -> Vec<crate::TileId> {
@@ -121,33 +121,39 @@ impl WorldChunkMap {
 impl World for WorldChunkMap {
 
     fn in_bounds(&self, coords: Coordinate) -> bool {
-        self.current_chunk().in_bounds(coords)
+        self.chunks.get(&self.current_chunk).map(|chunk| chunk.in_bounds(coords)).unwrap_or_default()
     }
 
     fn tile(&self, coords: Coordinate) -> Option<TileId> {
-        let current = self.current_chunk();
-        match current.tile(coords) {
-            Some(tile) => Some(tile),
-            None => {
-                for connection in &current.connections {
-                    if let Some(connection) = self.chunks.get(connection) {
-                        let tile = connection.tile(coords);
-                        if tile.is_some() {
-                            return tile;
+        match self.chunks.get(&self.current_chunk) {
+            Some(current) => {
+                match current.tile(coords) {
+                    Some(tile) => Some(tile),
+                    None => {
+                        for connection in &current.connections {
+                            if let Some(connection) = self.chunks.get(connection) {
+                                let tile = connection.tile(coords);
+                                if tile.is_some() {
+                                    return tile;
+                                }
+                            }
                         }
+                        None
                     }
                 }
+            }
+            None => {
                 None
             }
         }
     }
 
     fn walkable(&self, coords: Coordinate) -> MovementId {
-        self.current_chunk().walkable(coords)  
+        self.chunks.get(&self.current_chunk).map(|chunk| chunk.walkable(coords)).unwrap_or(1)
     }
 
     fn check_warp(&self, coords: Coordinate) -> Option<WarpDestination> {
-        self.current_chunk().check_warp(coords)
+        self.chunks.get(&self.current_chunk).map(|chunk| chunk.check_warp(coords)).unwrap_or_default()
     }
     
 }

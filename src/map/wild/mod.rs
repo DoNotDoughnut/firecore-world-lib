@@ -1,4 +1,4 @@
-use firecore_pokedex::pokemon::battle::BattlePokemon;
+use firecore_pokedex::pokemon::instance::PokemonInstance;
 use serde::{Deserialize, Serialize};
 
 use crate::TileId;
@@ -18,6 +18,6 @@ pub struct WildEntry {
 
 pub trait GenerateWild {
 
-    fn generate(&self) -> BattlePokemon;
+    fn generate(&self) -> PokemonInstance;
 
 }

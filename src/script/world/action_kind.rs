@@ -6,7 +6,7 @@ use firecore_util::text::Message;
 use firecore_audio_lib::music::MusicName;
 use firecore_audio_lib::sound::Sound;
 
-use firecore_pokedex::pokemon::instance::SavedPokemon;
+use firecore_pokedex::pokemon::saved::SavedPokemon;
 
 use crate::character::npc::{NPC, NPCId};
 use crate::map::warp::WarpDestination;

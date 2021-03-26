@@ -1,6 +1,6 @@
 use firecore_pokedex::pokemon::{
     PokemonId,
-    battle::BattlePokemon,
+    instance::PokemonInstance,
     data::StatSet,
     generate::GeneratePokemon,
     random::RandomSet,
@@ -28,10 +28,10 @@ impl WildPokemonTable {
 
 impl GenerateWild for WildPokemonTable {
 
-    fn generate(&self) -> BattlePokemon {
+    fn generate(&self) -> PokemonInstance {
         match self.encounter {
             Some(encounter) => encounter[get_counter()].generate(),
-            None => BattlePokemon::generate(
+            None => PokemonInstance::generate(
                 quad_rand::gen_range(0, firecore_pokedex::POKEDEX.len()) as PokemonId + 1, 
                 1,
                 100,

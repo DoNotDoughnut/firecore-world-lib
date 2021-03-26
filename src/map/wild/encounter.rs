@@ -1,7 +1,7 @@
 use firecore_pokedex::pokemon::{
     PokemonId,
     Level,
-    battle::BattlePokemon,
+    instance::PokemonInstance,
     data::StatSet,
     generate::GeneratePokemon,
     random::RandomSet,
@@ -22,7 +22,7 @@ pub struct WildPokemonEncounter {
 }
 
 impl super::GenerateWild for WildPokemonEncounter {
-    fn generate(&self) -> BattlePokemon {
-        BattlePokemon::generate(self.pokemon, self.min, self.max, Some(StatSet::random()))
+    fn generate(&self) -> PokemonInstance {
+        PokemonInstance::generate(self.pokemon, self.min, self.max, Some(StatSet::random()))
     }
 }
