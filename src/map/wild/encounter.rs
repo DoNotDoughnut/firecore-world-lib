@@ -1,23 +1,28 @@
 use firecore_pokedex::pokemon::{
     PokemonId,
-    instance::PokemonInstance,
-    generate::Generate,
+    Level,
+    battle::BattlePokemon,
+    data::StatSet,
+    generate::GeneratePokemon,
     random::RandomSet,
 };
 
-#[derive(Copy, Clone, Default, serde::Serialize, serde::Deserialize)]
+#[derive(Copy, Clone, serde::Serialize, serde::Deserialize)]
 pub struct WildPokemonEncounter {
 
-    pub pokemon_id: PokemonId,
-    pub min_level: u8,
-    pub max_level: u8,
+    #[serde(rename = "pokemon_id")]
+    pub pokemon: PokemonId,
+
+    #[serde(rename = "min_level")]
+    pub min: Level,
+
+    #[serde(rename = "max_level")]
+    pub max: Level,
 
 }
 
-impl WildPokemonEncounter {
-
-    pub fn generate(&self) -> PokemonInstance {
-        return PokemonInstance::generate(self.pokemon_id, self.min_level, self.max_level, Some(firecore_pokedex::pokemon::data::StatSet::random()));
+impl super::GenerateWild for WildPokemonEncounter {
+    fn generate(&self) -> BattlePokemon {
+        BattlePokemon::generate(self.pokemon, self.min, self.max, Some(StatSet::random()))
     }
-
 }

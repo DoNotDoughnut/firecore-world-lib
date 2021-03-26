@@ -25,7 +25,7 @@ pub struct WorldMapManager {
     pub player: PlayerCharacter,
 
     #[serde(skip)]
-    pub warp: Option<WarpDestination>,
+    pub warp: Option<(WarpDestination, bool)>,
 
 }
 
@@ -70,10 +70,10 @@ impl WorldMapManager {
             }
         };
 
-        let allow = if self.chunk_active {
+        let allow = if self.chunk_active && self.warp.is_none() {
             if let Some(destination) = self.chunk_map.check_warp(coords) {
                 if !destination.transition.warp_on_tile {
-                    self.warp = Some(destination);
+                    self.warp = Some((destination, true));
                     return true;
                 } else {
                     true
@@ -84,7 +84,7 @@ impl WorldMapManager {
         } else {
             if let Some(destination) = self.map_set_manager.check_warp(coords) {
                 if !destination.transition.warp_on_tile {
-                    self.warp = Some(destination);
+                    self.warp = Some((destination, true));
                     return true;
                 } else {
                     true

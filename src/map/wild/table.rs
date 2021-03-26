@@ -1,14 +1,16 @@
 use firecore_pokedex::pokemon::{
     PokemonId,
-    instance::PokemonInstance,
+    battle::BattlePokemon,
     data::StatSet,
-    generate::Generate,
+    generate::GeneratePokemon,
     random::RandomSet,
 };
 
+use super::GenerateWild;
 use super::encounter::WildPokemonEncounter;
 
-pub static DEFAULT_ENCOUNTER_CHANCE: u8 = 21;
+pub const DEFAULT_ENCOUNTER_CHANCE: u8 = 21;
+pub const CHANCES: [usize; 12] = [20, 20, 10, 10, 10, 10, 5, 5, 4, 4, 1, 1];
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct WildPokemonTable {
@@ -18,18 +20,22 @@ pub struct WildPokemonTable {
 
 impl WildPokemonTable {
 
-    pub fn encounter_rate(&self) -> u8 {
-        self.encounter_ratio
+    pub fn try_encounter(&self) -> bool {
+        quad_rand::gen_range(0, 255) < self.encounter_ratio
     }
 
-    pub fn generate(&self) -> PokemonInstance { // maybe move into trait for firecore-pokedex
+}
+
+impl GenerateWild for WildPokemonTable {
+
+    fn generate(&self) -> BattlePokemon {
         match self.encounter {
             Some(encounter) => encounter[get_counter()].generate(),
-            None => return PokemonInstance::generate(
+            None => BattlePokemon::generate(
                 quad_rand::gen_range(0, firecore_pokedex::POKEDEX.len()) as PokemonId + 1, 
-                1, 
-                100, 
-                Some(StatSet::random()), 
+                1,
+                100,
+                Some(StatSet::random()),
             ),
         }
     }
@@ -45,9 +51,6 @@ impl Default for WildPokemonTable {
     }
 }
 
-pub static CHANCES: [usize; 12] = [20, 20, 10, 10, 10, 10, 5, 5, 4, 4, 1, 1];
-
-
 fn get_counter() -> usize {
     let chance = quad_rand::gen_range(1, 100);
     let mut chance_counter = 0;
@@ -56,5 +59,5 @@ fn get_counter() -> usize {
         chance_counter += CHANCES[counter];
         counter+=1;            
     }
-    return counter - 1;
+    counter - 1
 }
