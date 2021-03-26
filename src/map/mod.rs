@@ -20,7 +20,7 @@ pub mod manager;
 
 pub mod warp;
 pub mod wild;
-pub mod object;
+// pub mod object;
 
 pub trait World {
 
@@ -28,9 +28,9 @@ pub trait World {
 
     fn in_bounds(&self, coords: Coordinate) -> bool;
 
-    fn tile(&self, coords: Coordinate) -> TileId;
+    fn tile(&self, coords: Coordinate) -> Option<TileId>;
 
-    fn walkable(&self, coords: Coordinate) -> MovementId;
+    fn walkable(&self, coords: Coordinate) -> MovementId; // not an option because can return 1
 
     fn check_warp(&self, coords: Coordinate) -> Option<warp::WarpDestination>;
 
@@ -45,9 +45,12 @@ pub struct WorldMap {
     pub width: MapSize,
     pub height: MapSize,
 
-    pub tile_map: Vec<TileId>,
-    pub border_blocks: [u16; 4],
-    pub movement_map: Vec<MovementId>,
+    pub tiles: Vec<TileId>,
+    pub movements: Vec<MovementId>,
+
+    pub border: Border, // border blocks
+
+    // Map objects
 
     pub warps: Vec<WarpEntry>,
 
@@ -59,23 +62,33 @@ pub struct WorldMap {
 
     pub scripts: Vec<WorldScript>,
 
+    // Map-specific runtime stuff
+
     #[serde(skip)]
     pub npc_active: Option<u8>,
 
 }
 
-impl World for WorldMap {
+impl WorldMap {
 
-    // fn len(&self) -> usize {
-    //     self.tile_map.len()
-    // }
-
-    fn in_bounds(&self, coords: Coordinate) -> bool {
-        return !(coords.x < 0 || (coords.x as MapSize) >= self.width || coords.y < 0 || (coords.y as MapSize) >= self.height);
+    pub fn tile_or_panic(&self, x: usize, y: usize) -> TileId {
+        self.tiles[x + y * self.width]
     }
 
-    fn tile(&self, coords: Coordinate) -> TileId {
-        self.tile_map[coords.x as usize + coords.y as usize * self.width as usize]
+}
+
+impl World for WorldMap {
+
+    fn in_bounds(&self, coords: Coordinate) -> bool {
+        return !(coords.x < 0 || coords.x >= self.width as isize || coords.y < 0 || coords.y >= self.height as isize);
+    }
+
+    fn tile(&self, coords: Coordinate) -> Option<TileId> {
+        if self.in_bounds(coords) {
+            Some(self.tiles[coords.x as usize + coords.y as usize * self.width])
+        } else {
+            None
+        }        
     }
 
     fn walkable(&self, coords: Coordinate) -> MovementId {
@@ -91,7 +104,7 @@ impl World for WorldMap {
         //         }
         //     }
         // }
-        self.movement_map[coords.x as usize + coords.y as usize * self.width as usize]
+        self.movements[coords.x as usize + coords.y as usize * self.width]
     }
 
     fn check_warp(&self, coords: Coordinate) -> Option<WarpDestination> {
@@ -100,7 +113,15 @@ impl World for WorldMap {
                 return Some(warp.destination.clone());
             }
         }
-        return None;
+        None
     }
+
+}
+
+#[derive(Default, Serialize, Deserialize)]
+pub struct Border {
+
+    pub tiles: Vec<TileId>,
+    pub size: u8, // length or width (border is a square)
 
 }

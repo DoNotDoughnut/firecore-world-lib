@@ -47,7 +47,7 @@ impl World for WorldMapSet {
         self.maps[self.current_map].in_bounds(coords)
     }
 
-    fn tile(&self, coords: Coordinate) -> TileId {
+    fn tile(&self, coords: Coordinate) -> Option<TileId> {
         self.maps[self.current_map].tile(coords)
     }
 

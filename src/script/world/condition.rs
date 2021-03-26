@@ -1,9 +1,12 @@
+use firecore_util::Direction;
 use serde::{Deserialize, Serialize};
 
 use crate::script::ScriptId;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum Condition {
+
+    Activate(Direction),
 
     Scripts(Vec<ScriptCondition>),
 

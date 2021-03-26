@@ -1,7 +1,12 @@
-use firecore_pokedex::PokemonId;
-use firecore_pokedex::pokemon::data::StatSet;
+use firecore_pokedex::pokemon::{
+    PokemonId,
+    instance::PokemonInstance,
+    data::StatSet,
+    generate::Generate,
+    random::RandomSet,
+};
+
 use super::encounter::WildPokemonEncounter;
-use firecore_pokedex::pokemon::instance::PokemonInstance;
 
 pub static DEFAULT_ENCOUNTER_CHANCE: u8 = 21;
 
@@ -19,12 +24,12 @@ impl WildPokemonTable {
 
     pub fn generate(&self) -> PokemonInstance { // maybe move into trait for firecore-pokedex
         match self.encounter {
-            Some(encounter) => encounter[get_counter()].generate_saved(),
+            Some(encounter) => encounter[get_counter()].generate(),
             None => return PokemonInstance::generate(
                 quad_rand::gen_range(0, firecore_pokedex::POKEDEX.len()) as PokemonId + 1, 
                 1, 
                 100, 
-                Some(StatSet::iv_random()), 
+                Some(StatSet::random()), 
             ),
         }
     }

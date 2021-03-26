@@ -1,5 +1,5 @@
 use firecore_util::Position;
-use firecore_util::text::MessageSet;
+use firecore_util::text::Message;
 use serde::{Deserialize, Serialize};
 
 use super::CharacterProperties;
@@ -23,7 +23,7 @@ pub struct NPC {
     pub position: Position,
 
     #[serde(default)]
-    pub properties: NPCProperties,
+    pub properties: NPCProperties, // To - do: Make non-optional (for 0.4.X)
 
     pub trainer: Option<Trainer>,
 
@@ -47,6 +47,6 @@ pub struct NPCProperties {
     #[serde(default)]
     pub movement: MovementType,
 
-    pub message: Option<MessageSet>,
+    pub message: Option<Vec<Message>>, // To - do: Make non-optional (for 0.4.X)
 
 }

@@ -1,5 +1,9 @@
-use firecore_pokedex::PokemonId;
-use firecore_pokedex::pokemon::instance::PokemonInstance;
+use firecore_pokedex::pokemon::{
+    PokemonId,
+    instance::PokemonInstance,
+    generate::Generate,
+    random::RandomSet,
+};
 
 #[derive(Copy, Clone, Default, serde::Serialize, serde::Deserialize)]
 pub struct WildPokemonEncounter {
@@ -12,8 +16,8 @@ pub struct WildPokemonEncounter {
 
 impl WildPokemonEncounter {
 
-    pub fn generate_saved(&self) -> PokemonInstance {
-        return PokemonInstance::generate(self.pokemon_id, self.min_level, self.max_level, Some(firecore_pokedex::pokemon::data::StatSet::iv_random()));
+    pub fn generate(&self) -> PokemonInstance {
+        return PokemonInstance::generate(self.pokemon_id, self.min_level, self.max_level, Some(firecore_pokedex::pokemon::data::StatSet::random()));
     }
 
 }

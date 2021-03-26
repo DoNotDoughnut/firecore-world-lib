@@ -1,6 +1,5 @@
-use firecore_util::Coordinate;
 use serde::{Deserialize, Serialize};
-use firecore_util::{Entity, Timer, BoundingBox};
+use firecore_util::{Entity, Timer, BoundingBox, Coordinate};
 
 use std::collections::VecDeque;
 
@@ -21,23 +20,30 @@ pub struct WorldScript {
 
     pub conditions: Vec<Condition>,
 
-    actions: VecDeque<WorldActionKind>,
-
-    
-    #[serde(skip)]
-    alive: bool,
+    #[serde(rename = "actions")]
+    original_actions: VecDeque<WorldActionKind>,
 
     #[serde(skip)]
-    pub actions_clone: VecDeque<WorldActionKind>,
+    pub actions: VecDeque<WorldActionKind>, // clones actions to this so scripts can be reused as the main actions field does not use up its values
 
     #[serde(skip)]
-    pub timer: Timer,
+    alive: bool, // script is running or not
+
+    #[serde(skip)]
+    pub option: u8, // variable to be used by script for persistant data in update loop (used in ConditionOrBreak)
+
+    #[serde(skip)]
+    pub timer: Timer, // timer for script waiting events
 
 }
 
 impl WorldScript {
 
-    pub fn test_pos(&self, coords: &Coordinate) -> bool {
+    fn on_spawn(&mut self) {
+        self.actions = self.original_actions.clone();
+    }
+
+    pub fn in_location(&self, coords: &Coordinate) -> bool {
         self.location.as_ref().map(|location| location.in_bounds(coords)).unwrap_or(true)
     }
 
@@ -46,7 +52,7 @@ impl WorldScript {
 impl Entity for WorldScript {
     fn spawn(&mut self) {
         self.alive = true;
-        self.actions_clone = self.actions.clone();
+        self.on_spawn();
     }
 
     fn despawn(&mut self) {

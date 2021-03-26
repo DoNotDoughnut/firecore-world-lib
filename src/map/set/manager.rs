@@ -44,14 +44,14 @@ impl WorldMapSetManager {
         let mut tiles = Vec::with_capacity(500);
         for map_set in self.map_sets.values() {
             for map in &map_set.maps {
-                for tile_id in &map.tile_map {
-                    if !tiles.contains(tile_id) {
-                        tiles.push(*tile_id);
+                for tile in &map.tiles {
+                    if !tiles.contains(tile) {
+                        tiles.push(*tile);
                     }        
                 }
-                for tile_id in &map.border_blocks {
-                    if !tiles.contains(tile_id) {
-                        tiles.push(*tile_id);
+                for tile in &map.border.tiles {
+                    if !tiles.contains(tile) {
+                        tiles.push(*tile);
                     }
                 }
             }
@@ -67,7 +67,7 @@ impl World for WorldMapSetManager {
         self.map_set().in_bounds(coords)
     }
 
-    fn tile(&self, coords: Coordinate) -> TileId {
+    fn tile(&self, coords: Coordinate) -> Option<TileId> {
         self.map_set().tile(coords)
     }
 

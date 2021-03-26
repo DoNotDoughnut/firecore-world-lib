@@ -9,7 +9,7 @@ use std::hash::Hash;
 use std::ops::Sub;
 
 use crate::map::World;
-use crate::map::manager::test_move_code;
+use crate::map::manager::can_move;
 
 use firecore_util::Coordinate;
 
@@ -28,7 +28,7 @@ fn valid_positions(coordinate: Coordinate, world: &impl World) -> Vec<((Directio
         .map(|direction| (*direction, coordinate + direction.tile_offset()))
         .filter(|(_, coords)|
             if world.in_bounds(*coords) {
-                test_move_code(world.walkable(*coords))
+                can_move(world.walkable(*coords))
             } else {
                 false
             }            

@@ -82,14 +82,14 @@ impl WorldChunkMap {
     pub fn tiles(&self) -> Vec<crate::TileId> {
         let mut tiles = Vec::with_capacity(1000);
         for chunk in self.chunks.values() {
-            for tile_id in &chunk.map.tile_map {
-                if !tiles.contains(tile_id) {
-                    tiles.push(*tile_id);
+            for tile in &chunk.map.tiles {
+                if !tiles.contains(tile) {
+                    tiles.push(*tile);
                 }
-            }
-            for tile_id in &chunk.map.border_blocks {
-                if !tiles.contains(tile_id) {
-                    tiles.push(*tile_id);
+            }            
+            for tile in &chunk.map.border.tiles {
+                if !tiles.contains(tile) {
+                    tiles.push(*tile);
                 }
             }
         }
@@ -108,7 +108,7 @@ impl WorldChunkMap {
             }
         }
         if let Some(chunk) = chunk {
-            if crate::map::manager::test_move_code(move_code) {
+            if crate::map::manager::can_move(move_code) {
                 self.change_chunk(chunk, player_pos);
                 return (move_code, true);
             }
@@ -124,31 +124,21 @@ impl World for WorldChunkMap {
         self.current_chunk().in_bounds(coords)
     }
 
-    fn tile(&self, coords: Coordinate) -> TileId {
-        if let Some(tile) = self.current_chunk().safe_tile(coords) {
-            return tile;
-        } else {
-            let current_chunk = self.current_chunk();
-            for connection in &current_chunk.connections {
-                let chunk = self.chunks.get(connection).expect("Could not get current chunk");
-                if let Some(tile) = chunk.safe_tile(coords) {
-                    return tile;
+    fn tile(&self, coords: Coordinate) -> Option<TileId> {
+        let current = self.current_chunk();
+        match current.tile(coords) {
+            Some(tile) => Some(tile),
+            None => {
+                for connection in &current.connections {
+                    if let Some(connection) = self.chunks.get(connection) {
+                        let tile = connection.tile(coords);
+                        if tile.is_some() {
+                            return tile;
+                        }
+                    }
                 }
+                None
             }
-            panic!("Requested tile for map {} is out of bounds at {}", self.current_chunk().map.name, coords);
-            // if coords.y % 2 == 0 {
-            //     if coords.x % 2 == 0 {
-            //         current_chunk.map.base.border_blocks[0]
-            //     } else {
-            //         current_chunk.map.base.border_blocks[2]
-            //     }
-            // } else {
-            //     if coords.x % 2 == 0 {
-            //         current_chunk.map.base.border_blocks[1]
-            //     } else {
-            //         current_chunk.map.base.border_blocks[3]
-            //     }
-            // }
         }
     }
 

@@ -15,8 +15,13 @@ pathfind = ["indexmap", "num-traits"]
 firecore-util = { git = "https://github.com/DoNotDoughnut/firecore-util" }
 #firecore-util = { path = "../firecore-util" }
 
-firecore-audio-lib = { git = "https://github.com/DoNotDoughnut/firecore-audio-lib" }
 firecore-pokedex = { git = "https://github.com/DoNotDoughnut/firecore-pokedex" }
+#firecore-pokedex = { path = "../firecore-pokedex" }
+
+#firecore-data-lib = { git = "https://github.com/DoNotDoughnut/firecore-data-lib" }
+#firecore-data-lib = { path = "../firecore-pokedex/firecore-data-lib" }
+
+firecore-audio-lib = { git = "https://github.com/DoNotDoughnut/firecore-audio-lib" }
 
 quad-rand = "0.2.1" # maybe move to own crate
 
