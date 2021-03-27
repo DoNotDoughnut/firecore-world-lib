@@ -22,4 +22,8 @@ pub struct Trainer {
     pub disable_others: HashSet<NPCId>,
     pub worth: u16,
 
+    #[serde(default)]
+    #[deprecated(note = "temporary fix")]
+    pub dont_battle_on_interact: bool,
+
 }

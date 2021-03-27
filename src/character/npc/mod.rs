@@ -47,6 +47,6 @@ pub struct NPCProperties {
     #[serde(default)]
     pub movement: MovementType,
 
-    pub message: Option<Vec<Message>>, // To - do: Make non-optional (for 0.4.X)
+    pub message: Option<Vec<Message>>,
 
 }
