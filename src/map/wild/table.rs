@@ -32,7 +32,7 @@ impl GenerateWild for WildPokemonTable {
         match self.encounter {
             Some(encounter) => encounter[get_counter()].generate(),
             None => PokemonInstance::generate(
-                quad_rand::gen_range(0, firecore_pokedex::POKEDEX.len()) as PokemonId + 1, 
+                quad_rand::gen_range(0, firecore_pokedex::pokedex().len()) as PokemonId + 1, 
                 1,
                 100,
                 Some(StatSet::random()),
