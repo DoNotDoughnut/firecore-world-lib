@@ -1,3 +1,4 @@
+use firecore_util::Coordinate;
 use firecore_util::Position;
 use firecore_util::text::Message;
 use serde::{Deserialize, Serialize};
@@ -26,6 +27,10 @@ pub struct NPC {
     pub properties: NPCProperties, // To - do: Make non-optional (for 0.4.X)
 
     pub trainer: Option<Trainer>,
+
+    #[deprecated]
+    #[serde(default)]
+    pub origin: Option<Coordinate>,
 
 }
 

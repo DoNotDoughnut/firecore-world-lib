@@ -8,9 +8,9 @@ use super::NPC;
 
 impl NPC {
 
-    pub fn find_player(&mut self, coords: Coordinate, character: &mut impl Character) -> bool {
+    pub fn find_character(&mut self, coords: Coordinate, character: &mut impl Character) -> bool {
         if self.eye_track(&coords) {
-            self.walk_next_to(&coords);
+            self.walk_next_to(coords);
             character.freeze();
             true
         } else {

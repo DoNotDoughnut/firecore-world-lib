@@ -6,11 +6,11 @@ use super::NPC;
 
 impl NPC {
 
-    pub fn walk_to(&mut self, to: &Coordinate) {
+    pub fn walk_to(&mut self, to: Coordinate) {
         self.properties.character.destination = Some(Destination::to(&self.position, to));
     }
 
-    pub fn walk_next_to(&mut self, to: &Coordinate) {
+    pub fn walk_next_to(&mut self, to: Coordinate) {
         self.properties.character.destination = Some(Destination::next_to(&self.position, to));
     }
 

@@ -1,5 +1,6 @@
 use firecore_audio_lib::music::MusicId;
 use firecore_util::Coordinate;
+use firecore_util::Timer;
 use serde::{Deserialize, Serialize};
 
 use ahash::AHashMap as HashMap;
@@ -9,6 +10,7 @@ use crate::MovementId;
 use crate::TileId;
 
 use crate::character::npc::NPC;
+use crate::character::npc::NPCId;
 use crate::script::world::WorldScript;
 
 use wild::WildEntry;
@@ -56,7 +58,7 @@ pub struct WorldMap {
 
     pub wild: Option<WildEntry>,
     
-    pub npcs: HashMap<u8, NPC>,
+    pub npcs: HashMap<NPCId, NPC>,
 
     // pub objects: HashMap<u8, MapObject>,
 
@@ -65,7 +67,10 @@ pub struct WorldMap {
     // Map-specific runtime stuff
 
     #[serde(skip)]
-    pub npc_active: Option<u8>,
+    pub npc_active: Option<NPCId>,
+
+    #[serde(skip, default = "default_npc_timer")]
+    pub npc_timer: Timer,
 
 }
 
@@ -104,7 +109,7 @@ impl World for WorldMap {
         //         }
         //     }
         // }
-        self.movements[coords.x as usize + coords.y as usize * self.width]
+        tile_walkable(coords, &self.movements, self.width)
     }
 
     fn check_warp(&self, coords: Coordinate) -> Option<WarpDestination> {
@@ -124,4 +129,12 @@ pub struct Border {
     pub tiles: Vec<TileId>,
     pub size: u8, // length or width (border is a square)
 
+}
+
+pub fn tile_walkable(coords: Coordinate, movements: &Vec<MovementId>, width: MapSize) -> MovementId {
+    movements[coords.x as usize + coords.y as usize * width]
+}
+
+pub fn default_npc_timer() -> Timer {
+    Timer::new(0.5)
 }

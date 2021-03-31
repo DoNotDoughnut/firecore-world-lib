@@ -32,11 +32,11 @@ impl WorldMapSet {
     }
 
     pub fn map(&self) -> &WorldMap {
-        &self.maps[self.current_map]
+        self.maps.get(self.current_map).unwrap()
     }
 
     pub fn map_mut(&mut self) -> &mut WorldMap {
-        &mut self.maps[self.current_map]
+        self.maps.get_mut(self.current_map).unwrap()
     }
 
 }
