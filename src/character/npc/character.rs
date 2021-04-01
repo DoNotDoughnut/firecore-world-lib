@@ -6,12 +6,12 @@ use super::NPC;
 
 impl NPC {
 
-    pub fn walk_to(&mut self, to: Coordinate) {
-        self.properties.character.destination = Some(Destination::to(&self.position, to));
+    pub fn go_to(&mut self, to: Coordinate) {
+        self.move_to(Destination::to(&self.position, to));
     }
 
-    pub fn walk_next_to(&mut self, to: Coordinate) {
-        self.properties.character.destination = Some(Destination::next_to(&self.position, to));
+    pub fn go_next_to(&mut self, to: Coordinate) {
+        self.move_to(Destination::next_to(&self.position, to));
     }
 
 }
@@ -50,10 +50,9 @@ impl Character for NPC {
         self.properties.character.frozen
     }
 
-    // fn start_move_to(&mut self, destination: Destination, able: F) -> bool {
-    //     self.properties.character.destination = DestinationPath::new(self.position, destination);
-    //     self.properties.character.destination.is_some()
-    // }
+    fn move_to(&mut self, destination: Destination) {
+        self.properties.character.destination = Some(destination);
+    }
 
     fn should_move_to_destination(&self) -> bool {
         // self.properties.character.destination.as_ref().map(|path| path.paths.len() <= path.current).unwrap_or(false)

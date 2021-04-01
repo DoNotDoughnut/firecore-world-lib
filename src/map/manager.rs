@@ -7,6 +7,7 @@ use firecore_util::Direction;
 use crate::character::Character;
 use crate::character::player::PlayerCharacter;
 
+use super::MapIdentifier;
 use super::World;
 use super::chunk::map::WorldChunkMap;
 use super::set::manager::WorldMapSetManager;
@@ -118,38 +119,38 @@ impl WorldMapManager {
         update
     }
 
-    pub fn update_chunk(&mut self, index: u16) {
-        self.chunk_map.current_chunk = index;
+    pub fn update_chunk(&mut self, index: MapIdentifier) {
+        self.chunk_map.update_chunk(index);
     }
 
-    pub fn update_map_set(&mut self, id: &String, index: u16) {
-        self.map_set_manager.set(id);
-        self.map_set_manager.set_index(index as usize);
+    pub fn update_map_set(&mut self, bank: MapIdentifier, index: MapIdentifier) {
+        self.map_set_manager.set_bank(bank);
+        self.map_set_manager.set_index(index);
     }
 
     pub fn warp(&mut self, destination: WarpDestination) {
-        if destination.map_id.as_str().eq("world") {
-            self.warp_to_chunk_map(&destination);
+        if destination.map.is_none() {
+            self.warp_to_chunk_map(destination);
         } else {
-            self.warp_to_map_set(&destination);
+            self.warp_to_map_set(destination);
         }
     }
 
-    pub fn warp_to_chunk_map(&mut self, destination: &WarpDestination) {
+    pub fn warp_to_chunk_map(&mut self, destination: WarpDestination) {
         if !self.chunk_active {
             self.chunk_active = true;
         }
-        if let Some(chunk) = self.chunk_map.update_chunk(&destination.map_index) {
+        if let Some(chunk) = self.chunk_map.update_chunk(destination.index) {
             self.player.position.global = chunk.coords;
             self.player.position.local.from_destination(destination.position);
         }
     }
 
-    pub fn warp_to_map_set(&mut self, destination: &WarpDestination) {
+    pub fn warp_to_map_set(&mut self, destination: WarpDestination) {
         if self.chunk_active {
             self.chunk_active = false;
         }
-        self.update_map_set(&destination.map_id, destination.map_index);
+        self.update_map_set(destination.map.unwrap(), destination.index);
         self.player.position.global = firecore_util::Coordinate { x: 0, y: 0 };
         self.player.position.local.from_destination(destination.position);
     }
@@ -157,5 +158,8 @@ impl WorldMapManager {
 }
 
 pub fn can_move(move_code: u8) -> bool {
-    move_code == 0x0C | 0x00 | 0x04
+    match move_code {
+        0x0C | 0x00 | 0x04 => true,
+        _ => false,
+    }
 }

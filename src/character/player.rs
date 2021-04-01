@@ -1,3 +1,4 @@
+use firecore_util::Destination;
 use firecore_util::Direction;
 use firecore_util::GlobalPosition;
 
@@ -73,9 +74,9 @@ impl Character for PlayerCharacter {
         self.properties.frozen || self.input_frozen
     }
 
-    // fn start_move_to(&mut self, destination: Destination) -> bool {
-    //     false
-    // }
+    fn move_to(&mut self, destination: Destination) {
+        self.properties.destination = Some(destination);
+    }
 
     fn should_move_to_destination(&self) -> bool {
         if let Some(offset) = self.properties.destination.as_ref() {

@@ -46,6 +46,7 @@ pub trait Character {
     fn on_try_move(&mut self, direction: Direction);
 
     fn stop_move(&mut self);
+    
 
     fn freeze(&mut self);
 
@@ -53,7 +54,8 @@ pub trait Character {
 
     fn is_frozen(&self) -> bool;
 
-    // fn start_move_to(&mut self, destination: Destination) -> bool;
+
+    fn move_to(&mut self, destination: Destination);
 
     fn should_move_to_destination(&self) -> bool;
 

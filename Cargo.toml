@@ -1,6 +1,6 @@
 [package]
 name = "firecore-world"
-version = "0.3.0-beta.2"
+version = "0.3.0-beta.3"
 authors = ["Rhys Holloway <rhyswilliamholloway@gmail.com>"]
 edition = "2018"
 
@@ -29,6 +29,7 @@ serde = { version = "1.0", features = ["derive"] }
 
 ahash = { version = "0.7", features = ["serde"] }
 smallvec = { version = "1.6", features = ["serde"] }
+tinystr = { version = "0.4", features = ["serde"] }
 
 ### pathfinding temporary crates
 indexmap = { version = "1.6", optional = true }

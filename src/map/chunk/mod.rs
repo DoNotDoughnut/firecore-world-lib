@@ -8,20 +8,23 @@ use crate::TileId;
 use crate::map::World;
 use crate::map::warp::WarpDestination;
 
+use super::MapIdentifier;
 use super::WorldMap;
 
 pub mod map;
 
-#[derive(Default, Deserialize, Serialize)]
+pub type Connections = SmallVec<[MapIdentifier; 6]>;
+
+#[derive(Deserialize, Serialize)]
 pub struct WorldChunk {
 
-    pub index: u16,
+    // pub index: u16,
 
     pub coords: Coordinate,
 
     pub map: WorldMap,
 
-    pub connections: SmallVec<[u16; 6]>,
+    pub connections: Connections,
 
 }
 

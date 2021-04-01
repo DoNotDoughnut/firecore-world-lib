@@ -18,6 +18,7 @@ pub enum WorldActionKind {
     PlayMapMusic,
     PlaySound(Sound),
 
+
     PlayerFreezeInput,
     PlayerUnfreezeInput,
     PlayerUnfreeze,
@@ -26,15 +27,21 @@ pub enum WorldActionKind {
     PlayerGivePokemon(SavedPokemon),
     PlayerHealPokemon,
 
-    NPCSpawn(NPC),
+
+    NPCAdd(NPC),
+    NPCRemove(NPCId),
+    NPCSpawn(NPCId),
+    NPCDespawn(NPCId),
+
     NPCLook(NPCId, Direction),
     NPCMove(NPCId, Destination),
+
     NPCLeadPlayer(NPCId, Destination),
     NPCMoveToPlayer(NPCId),
+
     NPCInteract(NPCId),
     NPCBattle(NPCId),
-    NPCRespawn(NPCId),
-    NPCDespawn(NPCId),
+
 
     Info(String),
     // Warn(String),
@@ -42,6 +49,7 @@ pub enum WorldActionKind {
     Wait(f32),
 
     DisplayText(Vec<Message>),
+    
     Conditional {
         messages: Vec<Message>,
 

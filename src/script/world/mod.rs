@@ -4,10 +4,10 @@ use firecore_util::{Entity, Timer, BoundingBox, Coordinate};
 use std::collections::VecDeque;
 
 mod condition;
-mod action_kind;
+mod actions;
 
 pub use self::condition::Condition;
-pub use self::action_kind::WorldActionKind;
+pub use self::actions::WorldActionKind;
 
 use super::ScriptId;
 

@@ -2,6 +2,8 @@ use firecore_util::BoundingBox;
 use firecore_util::Destination;
 use serde::{Serialize, Deserialize};
 
+use super::MapIdentifier;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WarpEntry {
     
@@ -10,11 +12,13 @@ pub struct WarpEntry {
     pub destination: WarpDestination,
 
 }
+
+#[serde(deny_unknown_fields)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WarpDestination {
 
-    pub map_id: String,
-    pub map_index: u16,
+    pub map: Option<MapIdentifier>,
+    pub index: MapIdentifier,
 
     pub position: Destination,
     #[serde(default)] // remove

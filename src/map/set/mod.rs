@@ -1,42 +1,46 @@
 use firecore_util::Coordinate;
 use serde::{Deserialize, Serialize};
+use ahash::AHashMap as HashMap;
 
 use crate::MovementId;
 use crate::TileId;
 
+use super::MapIdentifier;
 use super::World;
 use super::WorldMap;
 use super::warp::WarpDestination;
 
 pub mod manager;
 
-#[derive(Default, Deserialize, Serialize)]
+pub type Maps = HashMap<MapIdentifier, WorldMap>;
+
+#[derive(Deserialize, Serialize)]
 pub struct WorldMapSet {
 
-    pub name: String,
-    pub maps: Vec<WorldMap>,
+    // pub name: String,
+    pub maps: Maps,
     
     #[serde(skip)]
-    pub current_map: usize,
+    pub current: Option<MapIdentifier>,
 
 }
 
 impl WorldMapSet {
 
-    pub fn new(name: String, maps: Vec<WorldMap>) -> Self {
+    pub fn new(maps: Maps) -> Self {
         Self {
-            name,
+            // name,
             maps,
-            current_map: 0,
+            current: None,
         }
     }
 
-    pub fn map(&self) -> &WorldMap {
-        self.maps.get(self.current_map).unwrap()
+    pub fn map(&self) -> Option<&WorldMap> {
+        self.current.as_ref().map(|id| self.maps.get(id)).flatten()
     }
 
-    pub fn map_mut(&mut self) -> &mut WorldMap {
-        self.maps.get_mut(self.current_map).unwrap()
+    pub fn map_mut(&mut self) -> Option<&mut WorldMap> {
+        self.current.map(move |id| self.maps.get_mut(&id)).flatten()
     }
 
 }
@@ -44,23 +48,27 @@ impl WorldMapSet {
 impl World for WorldMapSet {
 
     fn in_bounds(&self, coords: Coordinate) -> bool {
-        self.maps[self.current_map].in_bounds(coords)
+        self.map().map(|map| map.in_bounds(coords)).unwrap_or(false)
     }
 
     fn tile(&self, coords: Coordinate) -> Option<TileId> {
-        self.maps[self.current_map].tile(coords)
+        self.map().map(|map| map.tile(coords)).flatten()
     }
 
     fn walkable(&self, coords: Coordinate) -> MovementId {
         if self.in_bounds(coords) {
-            self.maps[self.current_map].walkable(coords)
+            if let Some(map) = self.map() {
+                map.walkable(coords)
+            } else {
+                1
+            }
         } else {
             1
         }
     }
 
     fn check_warp(&self, coords: Coordinate) -> Option<WarpDestination> {
-        self.maps[self.current_map].check_warp(coords)
+        self.map().map(|map| map.check_warp(coords)).flatten()
     }
 
 }
