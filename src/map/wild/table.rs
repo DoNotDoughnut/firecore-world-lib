@@ -21,7 +21,7 @@ pub struct WildPokemonTable {
 impl WildPokemonTable {
 
     pub fn try_encounter(&self) -> bool {
-        super::WILD_RANDOM.gen_range(0, 255) < self.encounter_ratio
+        (super::WILD_RANDOM.gen_range(0..255u32) as u8) < self.encounter_ratio
     }
 
 }
@@ -32,7 +32,7 @@ impl GenerateWild for WildPokemonTable {
         match self.encounter {
             Some(encounter) => encounter[get_counter()].generate(),
             None => PokemonInstance::generate(
-                super::WILD_RANDOM.gen_range(0, firecore_pokedex::pokedex().len()) as PokemonId + 1, 
+                super::WILD_RANDOM.gen_range(0..firecore_pokedex::pokedex().len() as u32) as PokemonId + 1, 
                 1,
                 100,
                 Some(StatSet::random()),
@@ -52,7 +52,7 @@ impl Default for WildPokemonTable {
 }
 
 fn get_counter() -> usize {
-    let chance = super::WILD_RANDOM.gen_range(1, 100);
+    let chance = super::WILD_RANDOM.gen_range(1..100) as usize;
     let mut chance_counter = 0;
     let mut counter = 0;
     while chance > chance_counter {
