@@ -1,4 +1,5 @@
 use firecore_pokedex::pokemon::instance::PokemonInstance;
+use quad_rand::Random;
 use serde::{Deserialize, Serialize};
 
 use crate::TileId;
@@ -7,6 +8,9 @@ use self::table::WildPokemonTable;
 
 pub mod encounter;
 pub mod table;
+
+pub static WILD_RANDOM: Random = Random::new();
+
 
 #[derive(Serialize, Deserialize)]
 pub struct WildEntry {
