@@ -23,7 +23,7 @@ firecore-pokedex = { git = "https://github.com/DoNotDoughnut/firecore-pokedex" }
 
 firecore-audio-lib = { git = "https://github.com/DoNotDoughnut/firecore-audio-lib" }
 
-quad-rand = { git = "https://github.com/DoNotDoughnut/quad-rand" }
+firecore-rand = { git = "https://github.com/DoNotDoughnut/firecore-rand" }
 
 serde = { version = "1.0", features = ["derive"] }
 
