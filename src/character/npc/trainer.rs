@@ -20,7 +20,7 @@ pub struct Trainer {
     pub party: PokemonParty,
 
     #[serde(default)]
-    pub victory_message: Vec<String>,
+    pub victory_message: Vec<Vec<String>>,
     #[serde(default)]
     pub disable_others: HashSet<NPCId>,
     pub worth: u16,
