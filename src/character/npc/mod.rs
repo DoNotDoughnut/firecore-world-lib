@@ -1,6 +1,7 @@
 use firecore_util::Coordinate;
 use firecore_util::Entity;
 use firecore_util::Position;
+use firecore_util::TinyStr16;
 use firecore_util::text::Message;
 use serde::{Deserialize, Serialize};
 
@@ -44,7 +45,7 @@ pub struct NPCIdentifier {
     pub name: String,
     
     #[serde(rename = "type")]
-    pub npc_type: String,
+    pub npc_type: TinyStr16,
 
 }
 

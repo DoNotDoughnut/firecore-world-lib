@@ -3,13 +3,12 @@ use serde::{Deserialize, Serialize};
 use firecore_audio_lib::music::MusicName;
 use firecore_util::battle::BattleType;
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+use crate::character::sprite::SpriteIndexes;
+
+#[derive(Debug)]
 pub struct NPCType {
 
-    pub identifier: String,
-
-    pub sprite_type: u8,
-
+    pub sprite: &'static SpriteIndexes,
     pub trainer: Option<TrainerType>,
 
 }
@@ -17,7 +16,9 @@ pub struct NPCType {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct TrainerType {
 
+    pub name: String,
+    #[serde(rename = "type")]
     pub battle_type: BattleType,
-    pub encounter_music: MusicName,
+    pub music: Option<MusicName>,
 
 }

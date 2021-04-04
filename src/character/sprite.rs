@@ -1,12 +1,19 @@
 use serde::{Deserialize, Serialize};
 
-// #[serde(try_from = "u8")]
-#[derive(Debug, Clone, Copy, Deserialize, Serialize)]
+#[derive(Debug)]
 pub struct SpriteIndexes {
 
     pub up: [u8; 4],
     pub down: [u8; 4],
     pub side: [u8; 4],
+
+}
+
+#[derive(Deserialize, Serialize)]
+pub enum SpriteIndexType {
+    
+    Still,
+    Walk,
 
 }
 
@@ -24,10 +31,10 @@ impl SpriteIndexes {
         side: [2, 7, 2, 8],
     };
 
-    pub const fn from_index(index: u8) -> &'static Self {
+    pub const fn from_index(index: SpriteIndexType) -> &'static Self {
         match index {
-            1 => &Self::SPRITE_TYPE_WALK,
-            _ => &Self::SPRITE_TYPE_STILL,
+            SpriteIndexType::Still => &Self::SPRITE_TYPE_WALK,
+            SpriteIndexType::Walk => &Self::SPRITE_TYPE_STILL,
         }
     }
 
