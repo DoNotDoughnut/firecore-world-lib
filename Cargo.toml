@@ -1,6 +1,6 @@
 [package]
-name = "firecore-world"
-version = "0.3.1"
+name = "firecore-world-lib"
+version = "0.4.0-alpha.1.0"
 authors = ["Rhys Holloway <rhyswilliamholloway@gmail.com>"]
 edition = "2018"
 
@@ -17,9 +17,6 @@ firecore-util = { git = "https://github.com/DoNotDoughnut/firecore-util" }
 
 firecore-pokedex = { git = "https://github.com/DoNotDoughnut/firecore-pokedex" }
 #firecore-pokedex = { path = "../firecore-pokedex" }
-
-#firecore-data-lib = { git = "https://github.com/DoNotDoughnut/firecore-data-lib" }
-#firecore-data-lib = { path = "../firecore-pokedex/firecore-data-lib" }
 
 firecore-audio-lib = { git = "https://github.com/DoNotDoughnut/firecore-audio-lib" }
 
