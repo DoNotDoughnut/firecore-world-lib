@@ -1,6 +1,8 @@
 use firecore_util::TinyStr16;
 use serde::{Deserialize, Serialize};
 
+use crate::character::npc::NPC;
+use crate::character::npc::NPCId;
 use crate::character::npc::npc_type::TrainerType;
 use crate::character::sprite::SpriteIndexType;
 use crate::map::manager::WorldMapManager;
@@ -12,6 +14,14 @@ pub struct SerializedWorld {
 
     pub npc_types: Vec<SerializedNPCType>,
     pub palettes: Vec<Palette>,
+
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct SerializedNPC {
+
+    pub id: NPCId,
+    pub npc: NPC,
 
 }
 
