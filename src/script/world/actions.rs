@@ -28,7 +28,7 @@ pub enum WorldActionKind {
     PlayerHealPokemon,
 
 
-    NPCAdd(NPC),
+    NPCAdd(NPCId, NPC),
     NPCRemove(NPCId),
     NPCSpawn(NPCId),
     NPCDespawn(NPCId),

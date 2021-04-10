@@ -26,11 +26,10 @@ pub struct NPC {
     #[serde(default = "default_true")]
     pub alive: bool,
 
-    pub identifier: NPCIdentifier,
+    pub name: String,
 
     pub position: Position,
 
-    #[serde(default)]
     pub properties: NPCProperties,
 
     pub trainer: Option<Trainer>,
@@ -38,19 +37,10 @@ pub struct NPC {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct NPCIdentifier {
-
-    pub index: NPCId,
-
-    pub name: String,
+pub struct NPCProperties {
     
     #[serde(rename = "type")]
     pub npc_type: TinyStr16,
-
-}
-
-#[derive(Default, Debug, Clone, Deserialize, Serialize)]
-pub struct NPCProperties {
 
     #[serde(default)]
     pub character: CharacterProperties,

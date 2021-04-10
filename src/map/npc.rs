@@ -57,8 +57,8 @@ impl NPCManager {
     }
 
     pub fn do_move(&mut self, delta: f32) {
-        for npc in self.npcs.values_mut().filter(|npc| npc.is_alive() && npc.properties.character.destination.is_some() && npc.properties.movement != MovementType::Still) {
-            if self.active.map(|index| index != npc.identifier.index).unwrap_or(true) {
+        for (index, npc) in self.npcs.iter_mut().filter(|(_, npc)| npc.is_alive() && npc.properties.character.destination.is_some() && npc.properties.movement != MovementType::Still) {
+            if self.active.map(|active| active.ne(index)).unwrap_or(true) {
                 if npc.should_move_to_destination() {
                     npc.move_to_destination(delta);
                 } else {
