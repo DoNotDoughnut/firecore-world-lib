@@ -3,8 +3,8 @@ use firecore_pokedex::pokemon::{
     Level,
     instance::PokemonInstance,
     data::StatSet,
-    generate::GeneratePokemon,
-    random::RandomSet,
+    GeneratePokemon,
+    RandomSet,
 };
 
 #[derive(Copy, Clone, serde::Serialize, serde::Deserialize)]

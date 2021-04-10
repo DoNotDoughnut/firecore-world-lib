@@ -2,8 +2,8 @@ use firecore_pokedex::pokemon::{
     PokemonId,
     instance::PokemonInstance,
     data::StatSet,
-    generate::GeneratePokemon,
-    random::RandomSet,
+    GeneratePokemon,
+    RandomSet,
 };
 
 use super::GenerateWild;
