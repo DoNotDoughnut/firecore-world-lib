@@ -20,7 +20,7 @@ pub struct SerializedWorld {
 #[derive(Deserialize, Serialize)]
 pub struct SerializedNPC {
 
-    pub id: NPCId,
+    pub index: NPCId,
     pub npc: NPC,
 
 }
