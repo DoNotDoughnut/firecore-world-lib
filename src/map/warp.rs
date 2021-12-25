@@ -1,45 +1,33 @@
-use firecore_util::BoundingBox;
-use firecore_util::Destination;
-use serde::{Serialize, Deserialize};
+use crate::positions::{BoundingBox, Destination, Location};
+use std::collections::HashMap;
+use serde::{Deserialize, Serialize};
 
-use super::MapIdentifier;
+pub type WarpId = tinystr::TinyStr16;
+pub type Warps = HashMap<WarpId, WarpEntry>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct WarpEntry {
-    
     pub location: BoundingBox,
-
     pub destination: WarpDestination,
-
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WarpDestination {
-
-    pub map: Option<MapIdentifier>,
-    pub index: MapIdentifier,
+    pub location: Location,
 
     pub position: Destination,
-    #[serde(default)] // remove
     pub transition: WarpTransition,
-
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[deprecated(note = "will be replaced by checking warps for doors")]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct WarpTransition {
-
     pub move_on_exit: bool,
-
     pub warp_on_tile: bool,
 
-}
-
-impl Default for WarpTransition {
-    fn default() -> Self {
-        Self {
-            move_on_exit: false,
-            warp_on_tile: true,
-        }
-    }
+    #[serde(default = "crate::default_true")]
+    pub change_music: bool,
 }

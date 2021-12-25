@@ -1,53 +1,59 @@
-use firecore_util::TinyStr16;
 use serde::{Deserialize, Serialize};
 
-use crate::character::npc::NPC;
-use crate::character::npc::NPCId;
-use crate::character::npc::npc_type::TrainerType;
-use crate::character::sprite::SpriteIndexType;
-use crate::map::manager::WorldMapManager;
+use hashbrown::HashMap;
+
+use crate::{
+    character::{
+        npc::{
+            group::{NpcGroup, NpcGroupId},
+            Npc, NpcId,
+        },
+        Movement,
+    },
+    map::{manager::Maps, PaletteId, TileId},
+    // positions::Location,
+};
+
+// pub type MapGuiLocs = HashMap<crate::map::MapIcon, (String, Location)>;
+
+type Texture = Vec<u8>;
 
 #[derive(Deserialize, Serialize)]
 pub struct SerializedWorld {
+    pub maps: Maps,
 
-    pub manager: WorldMapManager,
-
-    pub npc_types: Vec<SerializedNPCType>,
-    pub palettes: Vec<Palette>,
-
+    pub npcs: HashMap<NpcGroupId, SerializedNpcGroup>,
+    // pub map_gui_locs: MapGuiLocs,
+    pub textures: SerializedTextures,
 }
 
 #[derive(Deserialize, Serialize)]
-pub struct SerializedNPC {
-
-    pub index: NPCId,
-    pub npc: NPC,
-
+pub struct SerializedNpc {
+    pub id: NpcId,
+    pub npc: Npc,
 }
 
 #[derive(Deserialize, Serialize)]
-pub struct SerializedNPCTypeConfig {
-
-    pub identifier: TinyStr16,
-    pub sprite: SpriteIndexType,
-    pub trainer: Option<TrainerType>,
-
-}
-
-#[derive(Deserialize, Serialize)]
-pub struct SerializedNPCType {
-
-    pub config: SerializedNPCTypeConfig,
-
+pub struct SerializedNpcGroup {
+    pub group: NpcGroup,
     pub texture: Vec<u8>,
-    pub battle_texture: Option<Vec<u8>>,
-
 }
 
+pub type SerializedPaletteMap = HashMap<PaletteId, SerializedPalette>;
+pub type SerializedPlayerTexture = HashMap<Movement, Texture>;
+
 #[derive(Deserialize, Serialize)]
-pub struct Palette {
+pub struct SerializedTextures {
+    pub palettes: SerializedPaletteMap,
+    pub player: SerializedPlayerTexture,
+}
 
-    pub id: u8,
-    pub bottom: Vec<u8>,
+pub type SerializedAnimatedTexture = HashMap<TileId, Texture>;
+pub type SerializedDoors = HashMap<TileId, Texture>;
 
+#[derive(Deserialize, Serialize)]
+pub struct SerializedPalette {
+    pub texture: Texture,
+    pub animated: SerializedAnimatedTexture,
+    pub doors: SerializedDoors,
 }

@@ -1,33 +1,28 @@
 [package]
-name = "firecore-world-lib"
-version = "0.4.0-alpha.1.1"
-authors = ["Rhys Holloway <rhyswilliamholloway@gmail.com>"]
-edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[features]
-default = []
-pathfind = ["indexmap", "num-traits"]
+name = "firecore-world"
+version = "0.5.0-beta.2021-12-24"
+authors = ["Rhys H <donotdoughnut99@gmail.com>"]
+edition = "2021"
 
 [dependencies]
 
-firecore-util = { git = "https://github.com/DoNotDoughnut/firecore-util" }
-#firecore-util = { path = "../firecore-util" }
+serde = { version = "1", features = ["derive"] }
+tinystr = { version = "0.4", features = ["serde"], default-features = false }
+rand = { version = "0.8", default-features = false }
+hashbrown = { version = "0.9", features = ["serde"] }
+# smallvec = { version = "1", features = ["union", "const_new"] }
+# enum-map = { version = "1", features = ["serde"] }
 
-firecore-pokedex = { git = "https://github.com/DoNotDoughnut/firecore-pokedex" }
-#firecore-pokedex = { path = "../firecore-pokedex" }
+firecore-pokedex = { version = "0.0.8", git = "https://github.com/fiirecore/pokedex", rev = "fdf002b" }
+# firecore-pokedex = { path = "../../firecore/pokedex" }
 
-firecore-audio-lib = { git = "https://github.com/DoNotDoughnut/firecore-audio-lib" }
+### Events
 
-firecore-rand = { git = "https://github.com/DoNotDoughnut/firecore-rand" }
+crossbeam-channel = "0.5"
 
-serde = { version = "1.0", features = ["derive"] }
+### Pathfinding
 
-ahash = { version = "0.7", features = ["serde"] }
-smallvec = { version = "1.6", features = ["serde"] }
-tinystr = { version = "0.4", features = ["serde"] }
+# indexmap = "1.6"
 
-### pathfinding temporary crates
-indexmap = { version = "1.6", optional = true }
-num-traits = { version = "0.2", optional = true }
+[workspace]
+members = ["builder"]

@@ -1,44 +1,61 @@
-use firecore_util::Direction;
-use firecore_util::Position;
-use indexmap::map::Entry::{Occupied, Vacant};
-use indexmap::IndexMap;
-use num_traits::Zero;
-use std::cmp::Ordering;
-use std::collections::BinaryHeap;
-use std::hash::Hash;
-use std::ops::Sub;
+use crate::{
+    map::WorldMap,
+    positions::{Coordinate, Destination, Direction, Path, Position},
+};
+use indexmap::{
+    map::Entry::{Occupied, Vacant},
+    IndexMap,
+};
+use std::{
+    cmp::Ordering,
+    collections::BinaryHeap,
+    hash::Hash,
+    ops::{Add, Sub},
+};
 
-use crate::map::World;
-use crate::map::manager::can_move;
-
-use firecore_util::Coordinate;
-
-pub fn pathfind(start: Position, end: Coordinate, world: &impl World) -> Option<Vec<Direction>> {
-    astar(
-        &(start.direction, start.coords),
-        |n| valid_positions(n.1, world),
-        |p| distance(&p.1, &end),
-        |p| end == p.1,
-    ).map(|path| path.0.into_iter().map(|(dir, _ )| dir).collect())
+pub fn pathfind(
+    from: &Position,
+    destination: Destination,
+    player: Coordinate,
+    world: &WorldMap,
+) -> Option<Path> {
+    let queue = astar(
+        &(from.direction, from.coords),
+        |n| valid_positions(n.1, world, &player),
+        |p| distance(&p.1, &destination.coords),
+        |p| destination.coords == p.1,
+    )
+    .map(|path| path.0.into_iter().map(|(dir, _)| dir).collect());
+    queue.map(|queue| Path {
+        queue,
+        turn: destination.direction,
+    })
 }
 
-fn valid_positions(coordinate: Coordinate, world: &impl World) -> Vec<((Direction, Coordinate), isize)> 
-{
-    Direction::DIRECTIONS.iter()
+fn valid_positions(
+    coordinate: Coordinate,
+    world: &WorldMap,
+    player: &Coordinate,
+) -> Vec<((Direction, Coordinate), isize)> {
+    Direction::DIRECTIONS
+        .iter()
         .map(|direction| (*direction, coordinate + direction.tile_offset()))
-        .filter(|(_, coords)|
-            if world.in_bounds(*coords) {
-                can_move(world.walkable(*coords))
+        .filter(|(_, coords)| {
+            if world.in_bounds(*coords) && coords != player {
+                world
+                    .local_movement(*coords)
+                    .map(can_walk)
+                    .unwrap_or_default()
             } else {
                 false
-            }            
-        )
+            }
+        })
         .map(|pos| (pos, 1))
         .collect()
 }
 
 fn distance(coordinate: &Coordinate, other: &Coordinate) -> isize {
-    absdiff(coordinate.x, other.x) + absdiff(coordinate.y, other.y)
+    (absdiff(coordinate.x, other.x) + absdiff(coordinate.y, other.y)) as isize
 }
 
 fn astar<N, C, FN, IN, FH, FS>(
@@ -49,7 +66,7 @@ fn astar<N, C, FN, IN, FH, FS>(
 ) -> Option<(Vec<N>, C)>
 where
     N: Eq + Hash + Clone,
-    C: Zero + Ord + Copy,
+    C: Default + Add<Output = C> + Ord + Copy,
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = (N, C)>,
     FH: FnMut(&N) -> C,
@@ -57,12 +74,12 @@ where
 {
     let mut to_see = BinaryHeap::new();
     to_see.push(SmallestCostHolder {
-        estimated_cost: Zero::zero(),
-        cost: Zero::zero(),
+        estimated_cost: Default::default(),
+        cost: Default::default(),
         index: 0,
     });
     let mut parents: IndexMap<N, (usize, C)> = IndexMap::new();
-    parents.insert(start.clone(), (usize::max_value(), Zero::zero()));
+    parents.insert(start.clone(), (usize::max_value(), Default::default()));
     while let Some(SmallestCostHolder { cost, index, .. }) = to_see.pop() {
         let successors = {
             let (node, &(_, c)) = parents.get_index(index).unwrap();
@@ -168,7 +185,8 @@ where
 }
 
 fn unfold<A, St, F>(initial_state: St, f: F) -> Unfold<St, F>
-    where F: FnMut(&mut St) -> Option<A>
+where
+    F: FnMut(&mut St) -> Option<A>,
 {
     Unfold {
         f,
@@ -185,7 +203,8 @@ struct Unfold<St, F> {
 }
 
 impl<A, St, F> Iterator for Unfold<St, F>
-    where F: FnMut(&mut St) -> Option<A>
+where
+    F: FnMut(&mut St) -> Option<A>,
 {
     type Item = A;
 
@@ -193,4 +212,20 @@ impl<A, St, F> Iterator for Unfold<St, F>
     fn next(&mut self) -> Option<Self::Item> {
         (self.f)(&mut self.state)
     }
+}
+
+pub fn tenth_walkable_coord(world: &WorldMap) -> Option<Coordinate> {
+    let mut count: u8 = 0;
+    for (i, m) in world.movements.iter().copied().enumerate() {
+        if can_walk(m) {
+            count += 1;
+            if count == 10 {
+                return Some(Coordinate::new(
+                    (i % world.width) as _,
+                    (i / world.width) as _,
+                ));
+            }
+        }
+    }
+    None
 }

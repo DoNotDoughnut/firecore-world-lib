@@ -1,165 +1,593 @@
-use std::u8;
-
+use hashbrown::HashMap;
+use rand::{Rng, SeedableRng};
 use serde::{Deserialize, Serialize};
 
-use firecore_util::Direction;
+use pokedex::moves::MoveId;
 
-use crate::character::Character;
-use crate::character::player::PlayerCharacter;
+use crate::{
+    actions::{WorldAction, WorldActions},
+    character::{
+        npc::{
+            group::{MessageColor, NpcGroup, NpcGroupId},
+            trainer::TrainerDisable,
+            NpcInteract,
+        },
+        player::PlayerCharacter,
+        Movement,
+    },
+    events::Sender,
+    map::{MovementId, WarpDestination, WorldMap},
+    positions::{Coordinate, Direction, Location, Position},
+};
 
-use super::MapIdentifier;
-use super::World;
-use super::chunk::map::WorldChunkMap;
-use super::set::manager::WorldMapSetManager;
-use super::warp::WarpDestination;
+use super::{
+    battle::BattleEntry,
+    chunk::Connection,
+    movement::MapMovementResult,
+    wild::{WildChances, WildEntry, WildType},
+};
 
-#[derive(Default, Deserialize, Serialize)]
-pub struct WorldMapManager {
+use self::{
+    random::WorldRandoms,
+    tile::{PaletteTileData, PaletteTileDatas},
+};
 
-    pub chunk_map: WorldChunkMap,
-    pub map_set_manager: WorldMapSetManager,
+pub mod state;
+pub mod tile;
 
-    #[serde(skip)]
-    pub chunk_active: bool,
+mod random;
 
-    #[serde(skip)]
-    pub player: PlayerCharacter,
+pub type Maps = HashMap<Location, WorldMap>;
 
-    #[serde(skip)]
-    pub warp: Option<(WarpDestination, bool)>,
-
+pub struct WorldMapManager<R: Rng + SeedableRng + Clone> {
+    pub data: WorldMapData,
+    sender: Sender<WorldAction>,
+    randoms: WorldRandoms<R>,
 }
 
-impl WorldMapManager {
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct WorldMapData {
+    pub maps: Maps,
+    pub tiles: PaletteTileDatas,
+    pub npcs: HashMap<NpcGroupId, NpcGroup>,
+    pub wild: WildChances,
+    pub default: (Location, Position),
+}
 
-    // pub fn get_map_music(&self) -> MusicId {
-    //     if self.chunk_active {
-    //         self.chunk_map.current_chunk().map.music
-    //     } else {
-    //         self.map_set_manager.map_set().map().music
-    //     }
-    // }
+impl<R: Rng + SeedableRng + Clone> WorldMapManager<R> {
+    pub fn new(data: WorldMapData, sender: Sender<WorldAction>) -> Self {
+        Self {
+            data,
+            sender,
+            randoms: Default::default(),
+        }
+    }
 
-    pub fn try_move(&mut self, direction: Direction, delta: f32) -> bool { // return boolean to update music
+    pub fn seed(&mut self, seed: u64) {
+        self.randoms.seed(seed);
+    }
 
-        let mut update = false;
+    pub fn contains(&self, location: &Location) -> bool {
+        self.data.maps.contains_key(location)
+    }
 
-        self.player.on_try_move(direction);
+    pub fn get(&self, location: &Location) -> Option<&WorldMap> {
+        self.data.maps.get(location)
+    }
+
+    pub fn on_warp(&mut self, player: &mut PlayerCharacter) {
+        self.on_map_change(player);
+        self.on_tile(player);
+    }
+
+    pub fn on_map_change(&self, player: &PlayerCharacter) {
+        if let Some(map) = self.data.maps.get(&player.location) {
+            self.on_change(map);
+        }
+    }
+
+    pub fn on_change(&self, map: &WorldMap) {
+        self.sender.send(WorldActions::PlayMusic(map.music));
+    }
+
+    pub fn try_interact(&mut self, player: &mut PlayerCharacter) {
+        if player.world.npc.active.is_none() {
+            if let Some(map) = self.data.maps.get_mut(&player.location) {
+                let pos = if map
+                    .tile(player.position.coords)
+                    .map(|tile| {
+                        PaletteTileData::iter(&self.data.tiles, &map.palettes)
+                            .any(|t| t.forwarding.contains(&tile))
+                    })
+                    .unwrap_or_default()
+                {
+                    player.position.in_direction(player.position.direction)
+                } else {
+                    player.position
+                };
+                for (id, npc) in map.npcs.iter_mut() {
+                    if (npc.interact.is_some() || npc.trainer.is_some()) && npc.interact_from(&pos)
+                    {
+                        player.world.npc.active = Some(*id);
+                    }
+                }
+            }
+        }
+    }
+
+    pub fn post_battle(&mut self, player: &mut PlayerCharacter, winner: bool, trainer: bool) {
+        player.unfreeze();
+        if winner {
+            if let Some(entry) = player.world.battle.battling.take() {
+                if trainer {
+                    if let Some(trainer) = self
+                        .data
+                        .maps
+                        .get(&entry.location)
+                        .map(|map| map.npcs.get(&entry.id).map(|npc| npc.trainer.as_ref()))
+                        .flatten()
+                        .flatten()
+                    {
+                        match &trainer.disable {
+                            TrainerDisable::DisableSelf => {
+                                player.world.battle.insert(&entry.location, entry.id);
+                            }
+                            TrainerDisable::Many(others) => {
+                                player.world.battle.insert(&entry.location, entry.id);
+                                player
+                                    .world
+                                    .battle
+                                    .battled
+                                    .get_mut(&entry.location)
+                                    .unwrap()
+                                    .extend(others);
+                            }
+                            TrainerDisable::None => (),
+                        }
+                    }
+                }
+            }
+        } else {
+            let loc = player.world.heal.unwrap_or(self.data.default);
+            player.location = loc.0;
+            player.position = loc.1;
+            player.location = player.location;
+            player
+                .trainer
+                .party
+                .iter_mut()
+                .for_each(|o| o.heal(None, None));
+        }
+    }
+
+    pub fn move_npcs(&mut self, player: &mut PlayerCharacter, delta: f32) {
+        if let Some(map) = self.data.maps.get_mut(&player.location) {
+            // Move Npcs
+
+            for npc in player
+                .world
+                .scripts
+                .npcs
+                .values_mut()
+                .filter(|(location, ..)| map.contains(location))
+                .map(|(.., npc)| npc)
+            {
+                npc.character.do_move(delta);
+            }
+
+            for npc in map.npcs.values_mut() {
+                npc.character.do_move(delta);
+            }
+
+            use crate::{character::npc::NpcMovement, positions::Destination};
+
+            match player.world.npc.timer > 0.0 {
+                false => {
+                    player.world.npc.timer += 1.0;
+
+                    const NPC_MOVE_CHANCE: f64 = 1.0 / 12.0;
+
+                    for (index, npc) in map.npcs.iter_mut() {
+                        if !npc.character.moving() && self.randoms.npc.gen_bool(NPC_MOVE_CHANCE) {
+                            match npc.movement {
+                                NpcMovement::Still => (),
+                                NpcMovement::LookAround => {
+                                    npc.character.position.direction =
+                                        Direction::DIRECTIONS[self.randoms.npc.gen_range(0..4)];
+                                    player.find_battle(&map.id, index, npc);
+                                }
+                                NpcMovement::WalkUpAndDown(steps) => {
+                                    let origin =
+                                        npc.origin.get_or_insert(npc.character.position.coords);
+                                    let direction = if npc.character.position.coords.y
+                                        <= origin.y - steps as i32
+                                    {
+                                        Direction::Down
+                                    } else if npc.character.position.coords.y
+                                        >= origin.y + steps as i32
+                                    {
+                                        Direction::Up
+                                    } else if self.randoms.npc.gen_bool(0.5) {
+                                        Direction::Down
+                                    } else {
+                                        Direction::Up
+                                    };
+                                    let coords =
+                                        npc.character.position.coords.in_direction(direction);
+                                    if WorldMap::can_move(
+                                        npc.character.position.elevation,
+                                        map.movements[npc.character.position.coords.x as usize
+                                            + npc.character.position.coords.y as usize
+                                                * map.width as usize],
+                                    ) {
+                                        npc.character.position.direction = direction;
+                                        if !player.find_battle(&map.id, index, npc)
+                                            && coords.y != player.position.coords.y
+                                        {
+                                            npc.character.pathing.extend(
+                                                &npc.character.position,
+                                                Destination::to(&npc.character.position, coords),
+                                            );
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                true => player.world.npc.timer -= delta,
+            }
+        }
+    }
+
+    pub fn update_interactions(&mut self, player: &mut PlayerCharacter) {
+        if let Some(id) = player.world.npc.active.as_ref() {
+            let npc = self
+                .data
+                .maps
+                .get_mut(&player.location)
+                .map(|map| map.npcs.get(&id))
+                .flatten();
+            let npc = if let Some(npc) = npc {
+                Some(npc)
+            } else {
+                // player
+                //     .world
+                //     .scripts
+                //     .npcs
+                //     .get(id)
+                //     .filter(|(location, ..)| &player.location == location)
+                //     .map(|(.., npc)| npc)
+                None
+            };
+            if let Some(npc) = npc {
+                match &player.world.polling {
+                    Some(finished) => {
+                        if finished.get() {
+                            if let Some(battle) = BattleEntry::trainer(
+                                &mut player.world.battle,
+                                &player.location,
+                                id,
+                                npc,
+                            ) {
+                                self.sender.send(WorldActions::Battle(battle));
+                            }
+                            if player.frozen() {
+                                player.unfreeze();
+                            }
+                            player.world.npc.active = None;
+                            player.world.polling = None;
+                        }
+                    }
+                    None => {
+                        if !npc.character.moving() {
+                            if !player.world.battle.battled(&player.location, id) {
+                                if let Some(group) = self.data.npcs.get(&npc.group) {
+                                    if let Some(trainer) = npc.trainer.as_ref() {
+                                        // if trainer.battle_on_interact {
+                                        // Spawn text window
+                                        if let Some(music) = group
+                                            .trainer
+                                            .as_ref()
+                                            .map(|trainer| trainer.music)
+                                            .flatten()
+                                        {
+                                            self.sender.send(WorldActions::PlayMusic(music));
+                                        }
+                                        player.character.position.direction =
+                                            npc.character.position.direction.inverse();
+                                        let message = trainer.encounter.iter().map(|lines| lines.iter().map(|line| {
+                                                let string = crate::character::message::process_str(line, &npc.character);
+                                                crate::character::message::process_str_player(&string, player)
+                                            }).collect()).collect();
+                                        player.world.polling = self.sender.send_polling(
+                                            WorldActions::Message(message, group.message),
+                                        );
+                                        return;
+                                        // }
+                                    }
+                                }
+                            }
+
+                            match &npc.interact {
+                                NpcInteract::Message(pages) => {
+                                    let message = pages
+                                        .iter()
+                                        .map(|lines| {
+                                            lines
+                                                .iter()
+                                                .map(|line| {
+                                                    let string =
+                                                        crate::character::message::process_str(
+                                                            line,
+                                                            &npc.character,
+                                                        );
+                                                    crate::character::message::process_str_player(
+                                                        &string, player,
+                                                    )
+                                                })
+                                                .collect()
+                                        })
+                                        .collect();
+
+                                    let color = self
+                                        .data
+                                        .npcs
+                                        .get(&npc.group)
+                                        .map(|group| group.message)
+                                        .unwrap_or(MessageColor::Black);
+
+                                    player.world.polling = self
+                                        .sender
+                                        .send_polling(WorldActions::Message(message, color));
+
+                                    return player.position.direction =
+                                        npc.character.position.direction.inverse();
+                                }
+                                NpcInteract::Script(_) => todo!(),
+                                NpcInteract::Nothing => (),
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    pub fn on_tile(
+        &mut self,
+        player: &mut PlayerCharacter,
+        // party: &[OwnedPokemon<P, M, I>],
+    ) {
+        self.sender.send(WorldActions::OnTile);
+
+        if let Some(map) = self.data.maps.get_mut(&player.location) {
+            if player.world.wild.encounters {
+                if let Some(current) = map.tile(player.position.coords) {
+                    if PaletteTileData::iter(&self.data.tiles, &map.palettes)
+                        .any(|t| t.wild.contains(&current))
+                    {
+                        let t = match player.movement {
+                            Movement::Swimming => &WildType::Water,
+                            _ => &WildType::Land,
+                        };
+                        if let Some(entry) =
+                            &map.wild.as_ref().map(|entries| entries.get(t)).flatten()
+                        {
+                            if let Some(entry) = WildEntry::generate(
+                                &self.data.wild,
+                                t,
+                                entry,
+                                &mut self.randoms.wild,
+                            ) {
+                                self.sender.send(WorldActions::Battle(entry));
+                            }
+                        }
+                    }
+                }
+            }
+
+            if player.world.npc.active.is_none() {
+                for (id, npc) in map.npcs.iter_mut().filter(|(_, npc)| npc.trainer.is_some()) {
+                    player.find_battle(&map.id, id, npc);
+                }
+            }
+        }
+
+        // if let Some(tile_id) = map.tile(player.position.coords) {
+        //     // look for player
+
+        //     // try running scripts
+
+        //     if player.world.scripts.actions.is_empty() {
+        //         'scripts: for script in map.scripts.iter() {
+        //             use worldlib::script::world::Condition;
+        //             for condition in &script.conditions {
+        //                 match condition {
+        //                     Condition::Location(location) => {
+        //                         if !location.in_bounds(&player.position.coords) {
+        //                             continue 'scripts;
+        //                         }
+        //                     }
+        //                     Condition::Activate(direction) => {
+        //                         if player.position.direction.ne(direction) {
+        //                             continue 'scripts;
+        //                         }
+        //                     }
+        //                     Condition::NoRepeat => {
+        //                         if player.world.scripts.executed.contains(&script.identifier) {
+        //                             continue 'scripts;
+        //                         }
+        //                     }
+        //                     Condition::Script(script, happened) => {
+        //                         if player.world.scripts.executed.contains(script).ne(happened) {
+        //                             continue 'scripts;
+        //                         }
+        //                     }
+        //                     Condition::PlayerHasPokemon(is_true) => {
+        //                         if party.is_empty().eq(is_true) {
+        //                             continue 'scripts;
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //             player
+        //                 .world
+        //                 .scripts
+        //                 .actions
+        //                 .extend_from_slice(&script.actions);
+        //             player.world.scripts.actions.push(
+        //                 worldlib::script::world::WorldAction::Finish(script.identifier),
+        //             );
+        //             player.world.scripts.actions.reverse();
+        //             break;
+        //         }
+        //     }
+        // }
+    }
+
+    fn stop_player(&mut self, player: &mut PlayerCharacter) {
+        player.stop_move();
+
+        if let Some(map) = self.data.maps.get(&player.location) {
+            if let Some(destination) = map.warp_at(player.position.coords) {
+                // Warping does not trigger tile actions!
+                player.world.warp = Some(*destination);
+            } else if map.in_bounds(player.position.coords) {
+                self.on_tile(player);
+            }
+        }
+    }
+
+    pub fn update(&mut self, player: &mut PlayerCharacter, delta: f32) {
+        if player.do_move(delta) {
+            self.stop_player(player);
+        }
+        self.move_npcs(player, delta);
+
+        self.update_interactions(player);
+    }
+
+    pub fn try_move(&mut self, player: &mut PlayerCharacter, direction: Direction) {
+        player.on_try_move(direction);
 
         let offset = direction.tile_offset();
-        let coords = self.player.position.local.coords + offset;
+        let coords = player.position.coords + offset;
 
-        let in_bounds = if self.chunk_active {
-            self.chunk_map.in_bounds(coords)
-        } else {
-            self.map_set_manager.in_bounds(coords)
-        };
-
-        let move_code = if self.chunk_active {
-            if in_bounds {
-                self.chunk_map.walkable(coords)
-            } else {
-               let (code, do_update) = self.chunk_map.walk_connections(&mut self.player.position, coords);
-               update = do_update;
-               code
-            }
-        } else {
-            if in_bounds {
-                self.map_set_manager.walkable(coords)
-            } else {
-                1
-            }
-        };
-
-        let allow = if self.chunk_active && self.warp.is_none() {
-            if let Some(destination) = self.chunk_map.check_warp(coords) {
-                if !destination.transition.warp_on_tile {
-                    self.warp = Some((destination, true));
-                    return true;
-                } else {
-                    true
+        if let Some(map) = self.get(&player.location) {
+            // Check for warp on tile
+            if player.world.warp.is_none() {
+                if let Some(destination) = map.warp_at(coords) {
+                    player.world.warp = Some(*destination);
+                    self.sender.send(WorldActions::BeginWarpTransition(coords));
+                    return;
                 }
-            } else {
-                false
+            };
+
+            // Check for one-way tile
+            if map
+                .tile(coords)
+                .map(|tile| {
+                    PaletteTileData::iter(&self.data.tiles, &map.palettes).any(|t| {
+                        t.cliffs
+                            .get(&direction)
+                            .map(|tiles| tiles.contains(&tile))
+                            .unwrap_or_default()
+                    })
+                })
+                .unwrap_or_default()
+                && !player.noclip
+            {
+                self.sender.send(WorldActions::PlayerJump);
+                return;
             }
-        } else {
-            if let Some(destination) = self.map_set_manager.check_warp(coords) {
-                if !destination.transition.warp_on_tile {
-                    self.warp = Some((destination, true));
-                    return true;
-                } else {
-                    true
+
+            match map.chunk_movement(coords) {
+                MapMovementResult::Option(code) => {
+                    with_code(player, code.unwrap_or(1), direction);
                 }
-            } else {
-                false
+                MapMovementResult::Chunk(direction, offset, connection) => {
+                    if let Some((location, coords, code)) =
+                        self.connection_movement(direction, offset, connection)
+                    {
+                        if with_code(player, code, direction) {
+                            player.character.position.coords = coords;
+                            player.location = location;
+                            self.on_map_change(&player);
+                        }
+                    }
+                }
             }
-        } || if let Some(tile_id) = if self.chunk_active {
-            self.chunk_map.tile(coords)
-        } else {
-            self.map_set_manager.tile(coords)
-        } {
-            match direction {
-                Direction::Up => false,
-                Direction::Down => match tile_id  {
-                    135 | 176 | 177 | 143 | 151 | 184 | 185 | 192 | 193 | 217 | 1234 => true,
-                    _ => false,
-                },
-                Direction::Left => tile_id == 133,
-                Direction::Right => tile_id == 134,
+        }
+
+        fn with_code(player: &mut PlayerCharacter, code: MovementId, direction: Direction) -> bool {
+            if WorldMap::can_move(player.position.elevation, code) || player.noclip {
+                if WorldMap::WATER == code {
+                    if player.movement != Movement::Swimming {
+                        const SURF: &MoveId = unsafe { &MoveId::new_unchecked(1718777203) };
+
+                        if player
+                            .trainer
+                            .party
+                            .iter()
+                            .flat_map(|pokemon| pokemon.moves.iter())
+                            .any(|m| &m.0 == SURF)
+                            || player.noclip
+                        {
+                            player.movement = Movement::Swimming;
+                        } else {
+                            return false;
+                        }
+                    }
+                } else if player.movement == Movement::Swimming {
+                    player.movement = Movement::Walking;
+                }
+                WorldMap::change_elevation(&mut player.position.elevation, code);
+                player.pathing.queue.push(direction);
+                return true;
+                // self.player.offset =
+                //     direction.pixel_offset(self.player.speed() * 60.0 * delta);
             }
-        } else {
             false
-        };
-
-        if can_move(move_code) || allow || self.player.properties.noclip {
-            let mult = self.player.properties.speed * 60.0 * delta;
-            self.player.position.local.offset = direction.pixel_offset().scale(mult);
         }
 
-        update
+        // // check if on unwalkable tile
+        // let stuck = map.local_movement(player.position.coords)
+        //             .map(|code| !can_move(player.movement, code))
+        //             .unwrap_or(false);
+        // println!("{}", stuck);
     }
 
-    pub fn update_chunk(&mut self, index: MapIdentifier) {
-        self.chunk_map.update_chunk(index);
+    pub fn connection_movement(
+        &self,
+        direction: Direction,
+        offset: i32,
+        connections: &[Connection],
+    ) -> Option<(Location, Coordinate, MovementId)> {
+        connections.iter().find_map(|connection| {
+            self.data
+                .maps
+                .get(&connection.0)
+                .map(|map| {
+                    let o = offset - connection.1;
+                    let position = Connection::offset(direction, map, o);
+                    let coords = position.in_direction(direction);
+                    map.local_movement(coords)
+                        .map(|code| (map.id, position, code))
+                })
+                .flatten()
+        })
     }
 
-    pub fn update_map_set(&mut self, bank: MapIdentifier, index: MapIdentifier) {
-        self.map_set_manager.set_bank(bank);
-        self.map_set_manager.set_index(index);
-    }
-
-    pub fn warp(&mut self, destination: WarpDestination) {
-        if destination.map.is_none() {
-            self.warp_to_chunk_map(destination);
-        } else {
-            self.warp_to_map_set(destination);
+    pub fn warp(&mut self, player: &mut PlayerCharacter, destination: WarpDestination) -> bool {
+        match self.data.maps.contains_key(&destination.location) {
+            true => {
+                player.position.from_destination(destination.position);
+                player.pathing.clear();
+                player.location = destination.location;
+                true
+            }
+            false => false,
         }
-    }
-
-    pub fn warp_to_chunk_map(&mut self, destination: WarpDestination) {
-        if !self.chunk_active {
-            self.chunk_active = true;
-        }
-        if let Some(chunk) = self.chunk_map.update_chunk(destination.index) {
-            self.player.position.global = chunk.coords;
-            self.player.position.local.from_destination(destination.position);
-        }
-    }
-
-    pub fn warp_to_map_set(&mut self, destination: WarpDestination) {
-        if self.chunk_active {
-            self.chunk_active = false;
-        }
-        self.update_map_set(destination.map.unwrap(), destination.index);
-        self.player.position.global = firecore_util::Coordinate { x: 0, y: 0 };
-        self.player.position.local.from_destination(destination.position);
-    }
-
-}
-
-pub fn can_move(move_code: u8) -> bool {
-    match move_code {
-        0x0C | 0x00 | 0x04 => true,
-        _ => false,
     }
 }

@@ -1,28 +1,63 @@
-use serde::{Deserialize, Serialize};
-use ahash::AHashSet as HashSet;
-use firecore_pokedex::pokemon::party::PokemonParty;
-use firecore_util::battle::BattleScreenTransitions;
+use std::ops::{Deref, DerefMut};
 
-use crate::default_true;
-use super::NPCId;
+use hashbrown::HashSet;
+use serde::{Deserialize, Serialize};
+
+use crate::character::{npc::NpcId, trainer::Trainer};
+
+pub type BadgeId = tinystr::TinyStr16;
+pub type TransitionId = tinystr::TinyStr8;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct Trainer {
+#[serde(deny_unknown_fields)]
+pub struct NpcTrainer {
 
-    #[serde(default = "default_true")]
-    pub battle_on_interact: bool,
-    pub tracking_length: Option<u8>,
-    pub encounter_message: Vec<Vec<String>>,
+    pub character: Trainer,
+
+    /// The trainer tracks a certain amount of tiles in front of them
+    pub tracking: Option<u8>,
+
+    pub encounter: Vec<Vec<String>>,
+    #[serde(default = "default_battle_transition")]
+    pub transition: TransitionId,
+
+    pub defeat: Vec<Vec<String>>,
 
     #[serde(default)]
-    pub battle_transition: BattleScreenTransitions,
-
-    pub party: PokemonParty,
+    pub badge: Option<BadgeId>,
 
     #[serde(default)]
-    pub victory_message: Vec<Vec<String>>,
-    #[serde(default)]
-    pub disable_others: HashSet<NPCId>,
-    pub worth: u16,
+    pub disable: TrainerDisable,
+}
 
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub enum TrainerDisable {
+    #[serde(rename = "Self")]
+    DisableSelf,
+    Many(HashSet<NpcId>),
+    None,
+}
+
+impl Default for TrainerDisable {
+    fn default() -> Self {
+        Self::DisableSelf
+    }
+}
+
+fn default_battle_transition() -> TransitionId {
+    "default".parse().unwrap()
+}
+
+impl Deref for NpcTrainer {
+    type Target = Trainer;
+
+    fn deref(&self) -> &Self::Target {
+        &self.character
+    }
+}
+
+impl DerefMut for NpcTrainer {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.character
+    }
 }

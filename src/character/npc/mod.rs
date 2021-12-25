@@ -1,69 +1,49 @@
-use firecore_util::Coordinate;
-use firecore_util::Entity;
-use firecore_util::Position;
-use firecore_util::TinyStr16;
-use firecore_util::text::Message;
+use crate::positions::Coordinate;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
-use crate::default_true;
+use super::Character;
+use self::trainer::NpcTrainer;
 
-use super::CharacterProperties;
-use super::movement::MovementType;
-use self::trainer::Trainer;
+mod interact;
+pub use interact::*;
 
-pub mod npc_type;
-
+pub mod group;
 pub mod trainer;
 
-pub mod character;
-pub mod interact;
-
-pub type NPCId = u8;
+pub type NpcId = tinystr::TinyStr8;
+pub type Npcs = HashMap<NpcId, Npc>;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct NPC {
-
-    #[serde(default = "default_true")]
-    pub alive: bool,
-
-    pub name: String,
-
-    pub position: Position,
-
-    pub properties: NPCProperties,
-
-    pub trainer: Option<Trainer>,
-
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct NPCProperties {
-    
+#[serde(deny_unknown_fields)]
+pub struct Npc {
+    pub character: Character,
+    /// The NPC's type.
+    /// This determines the texture of the NPC,
+    /// what color their message text is,
+    /// and what song is played on an encounter
     #[serde(rename = "type")]
-    pub npc_type: TinyStr16,
-
+    pub group: group::NpcGroupId,
     #[serde(default)]
-    pub character: CharacterProperties,
-
-    #[serde(default)]
-    pub movement: MovementType,
+    pub movement: NpcMovement,
     #[serde(skip, default)]
     pub origin: Option<Coordinate>,
 
-    pub message: Option<Vec<Message>>,
+    #[serde(default)]
+    pub interact: NpcInteract,
 
+    pub trainer: Option<NpcTrainer>,
 }
 
-impl Entity for NPC {
-    fn spawn(&mut self) {
-        self.alive = true;
-    }
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+pub enum NpcMovement {
+    Still,
+    LookAround,
+    WalkUpAndDown(u8),
+}
 
-    fn despawn(&mut self) {
-        self.alive = false;
-    }
-
-    fn is_alive(&self) -> bool {
-        self.alive
+impl Default for NpcMovement {
+    fn default() -> Self {
+        Self::Still
     }
 }

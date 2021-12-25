@@ -1,130 +1,187 @@
-use firecore_audio_lib::music::MusicId;
-use firecore_util::Coordinate;
-use firecore_util::Entity;
 use serde::{Deserialize, Serialize};
-use tinystr::TinyStr16;
 
-use crate::MapSize;
-use crate::MovementId;
-use crate::TileId;
+use crate::{
+    character::npc::Npcs,
+    positions::{Coordinate, CoordinateInt, Direction, Location},
+};
+use warp::{WarpDestination, Warps};
+use wild::WildEntries;
 
-use crate::script::world::WorldScript;
+use self::{chunk::WorldChunk, movement::MapMovementResult};
 
-use wild::WildEntry;
-use warp::{WarpEntry, WarpDestination};
-
-use self::npc::NPCManager;
-
-pub mod set;
 pub mod chunk;
-pub mod manager;
+pub mod movement;
 
+pub mod manager;
 pub mod warp;
 pub mod wild;
-pub mod npc;
-// pub mod object;
 
-pub type MapIdentifier = TinyStr16;
+pub mod battle;
 
-pub trait World {
+pub type TileId = u16;
+pub type MapSize = usize;
+pub type PaletteId = u8;
+pub type Palettes = [PaletteId; 2];
+pub type MovementId = movement::MovementId;
+pub type MusicId = tinystr::TinyStr16;
 
-    // fn len(&self) -> usize;
-
-    fn in_bounds(&self, coords: Coordinate) -> bool;
-
-    fn tile(&self, coords: Coordinate) -> Option<TileId>;
-
-    fn walkable(&self, coords: Coordinate) -> MovementId; // not an option because can return 1
-
-    fn check_warp(&self, coords: Coordinate) -> Option<warp::WarpDestination>;
-
-}
-
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorldMap {
+    pub id: Location,
 
     pub name: String,
     pub music: MusicId,
 
-    pub width: MapSize,
-    pub height: MapSize,
+    pub width: CoordinateInt,
+    pub height: CoordinateInt,
+
+    pub palettes: Palettes,
 
     pub tiles: Vec<TileId>,
     pub movements: Vec<MovementId>,
 
-    pub border: Border, // border blocks
+    pub border: [TileId; 4], //Border, // border blocks
+
+    pub chunk: Option<WorldChunk>,
 
     // Map objects
+    pub warps: Warps,
 
-    pub warps: Vec<WarpEntry>,
+    pub wild: Option<WildEntries>,
 
-    pub wild: Option<WildEntry>,
-    
-    pub npc_manager: NPCManager,
+    pub npcs: Npcs,
 
     // pub objects: HashMap<u8, MapObject>,
+    // pub scripts: Vec<WorldScript>,
 
-    pub scripts: Vec<WorldScript>,
+    #[serde(default)]
+    pub settings: WorldMapSettings,
+    // pub mart: Option<mart::Pokemart>,
+}
 
+#[derive(Debug, Clone, Copy, Default, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct WorldMapSettings {
+    #[serde(default)]
+    /// To - do: rename to "fly"
+    pub fly_position: Option<Coordinate>,
+    #[serde(default)]
+    pub brightness: Brightness,
 }
 
 impl WorldMap {
-
-    pub fn tile_or_panic(&self, x: usize, y: usize) -> TileId {
-        self.tiles[x + y * self.width]
+    pub fn in_bounds(&self, coords: Coordinate) -> bool {
+        !(coords.x.is_negative()
+            || coords.x >= self.width
+            || coords.y.is_negative()
+            || coords.y >= self.height)
     }
 
-}
-
-impl World for WorldMap {
-
-    fn in_bounds(&self, coords: Coordinate) -> bool {
-        return !(coords.x < 0 || coords.x >= self.width as isize || coords.y < 0 || coords.y >= self.height as isize);
+    pub fn tile(&self, coords: Coordinate) -> Option<TileId> {
+        self.in_bounds(coords)
+            .then(|| self.tiles[coords.x as usize + coords.y as usize * self.width as usize])
     }
 
-    fn tile(&self, coords: Coordinate) -> Option<TileId> {
-        if self.in_bounds(coords) {
-            Some(self.tiles[coords.x as usize + coords.y as usize * self.width])
-        } else {
-            None
-        }        
+    pub fn local_movement(&self, coords: Coordinate) -> Option<MovementId> {
+        self.in_bounds(coords)
+            .then(|| self.unbounded_movement(coords))
+            .flatten()
     }
 
-    fn walkable(&self, coords: Coordinate) -> MovementId {
-        for npc in self.npc_manager.npcs.values() {
-            if npc.is_alive() && npc.position.coords == coords {
-                return 1;
+    pub fn unbounded_movement(&self, coords: Coordinate) -> Option<MovementId> {
+        self.movements
+            .get(coords.x as usize + coords.y as usize * self.width as usize)
+            .map(|code| {
+                match self
+                    .npcs
+                    .values()
+                    .any(|npc| npc.character.position.coords == coords)
+                {
+                    true => 1,
+                    false => *code,
+                }
+            })
+    }
+
+    pub fn chunk_movement(&self, coords: Coordinate) -> MapMovementResult {
+        if let Some(chunk) = self.chunk.as_ref() {
+            if coords.x.is_negative() {
+                return chunk
+                    .connections
+                    .get_key_value(&Direction::Left)
+                    .map(|(d, c)| (d, coords.y, c.as_ref()))
+                    .into();
             }
-        }
-        // for object in self.objects.values() {
-        //     if object.active {
-        //         if object.location == coords {
-        //             return 1;
-        //         }
-        //     }
-        // }
-        tile_walkable(coords, &self.movements, self.width)
-    }
 
-    fn check_warp(&self, coords: Coordinate) -> Option<WarpDestination> {
-        for warp in &self.warps {
-            if warp.location.in_bounds(&coords) {
-                return Some(warp.destination.clone());
+            if coords.x >= self.width {
+                return chunk
+                    .connections
+                    .get_key_value(&Direction::Right)
+                    .map(|(d, c)| (d, coords.y, c.as_ref()))
+                    .into();
             }
+
+            if coords.y.is_negative() {
+                return chunk
+                    .connections
+                    .get_key_value(&Direction::Up)
+                    .map(|(d, c)| (d, coords.x, c.as_ref()))
+                    .into();
+            }
+
+            if coords.y >= self.height {
+                return chunk
+                    .connections
+                    .get_key_value(&Direction::Down)
+                    .map(|(d, c)| (d, coords.x, c.as_ref()))
+                    .into();
+            }
+        } else if !self.in_bounds(coords) {
+            return MapMovementResult::NONE;
         }
-        None
+        self.unbounded_movement(coords).into()
     }
 
+    pub fn warp_at(&self, coords: Coordinate) -> Option<&WarpDestination> {
+        self.warps
+            .values()
+            .find(|warp| warp.location.in_bounds(&coords))
+            .map(|entry| &entry.destination)
+    }
+
+    pub fn contains(&self, location: &Location) -> bool {
+        &self.id == location
+            || self
+                .chunk
+                .as_ref()
+                .map(|chunk| {
+                    chunk
+                        .connections
+                        .values()
+                        .flatten()
+                        .any(|connection| &connection.0 == location)
+                })
+                .unwrap_or_default()
+    }
 }
 
-#[derive(Default, Serialize, Deserialize)]
-pub struct Border {
-
-    pub tiles: Vec<TileId>,
-    pub size: u8, // length or width (border is a square)
-
+/// To - do: move
+#[derive(Debug, Clone, Copy, Deserialize, Serialize)]
+pub enum Brightness {
+    Day,
+    Night,
+    // FlashNeeded,
 }
 
-pub fn tile_walkable(coords: Coordinate, movements: &Vec<MovementId>, width: MapSize) -> MovementId {
-    movements[coords.x as usize + coords.y as usize * width]
+// #[deprecated]
+// #[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq, Hash)]
+// pub enum MapIcon {
+//     City(u8, u8),
+//     Route(u8, u8, u8, u8),
+// }
+
+impl Default for Brightness {
+    fn default() -> Self {
+        Self::Day
+    }
 }
