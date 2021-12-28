@@ -9,10 +9,6 @@ pub mod serialized;
 
 pub const TILE_SIZE: f32 = 16.0;
 
-pub(crate) const fn default_true() -> bool {
-    true
-}
-
 pub mod events {
 
     use std::{cell::Cell, rc::Rc};
@@ -62,7 +58,6 @@ pub mod events {
 pub mod actions {
     use std::{cell::Cell, rc::Rc};
 
-    use firecore_pokedex::item::SavedItemStack;
     use tinystr::TinyStr16;
 
     use crate::{
@@ -85,9 +80,6 @@ pub mod actions {
 
         /// Should freeze player and start battle
         Battle(BattleEntry),
-        // GivePokemon(SavedPokemon),
-        #[deprecated]
-        GiveItem(SavedItemStack),
         OnTile,
         // Command(PlayerActions),
     }

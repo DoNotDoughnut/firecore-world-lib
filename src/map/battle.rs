@@ -1,5 +1,9 @@
-use firecore_pokedex::pokemon::{owned::SavedPokemon, party::Party};
 use serde::{Deserialize, Serialize};
+
+use pokedex::{
+    item::bag::SavedBag,
+    pokemon::{owned::SavedPokemon, party::Party},
+};
 
 use crate::{
     character::npc::{Npc, NpcId},
@@ -8,7 +12,7 @@ use crate::{
 
 use super::manager::state::WorldBattleState;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct BattleEntry {
     pub party: Party<SavedPokemon>,
     pub active: usize,
@@ -19,6 +23,7 @@ pub struct BattleEntry {
 pub struct TrainerEntry {
     pub id: NpcId,
     pub location: Location,
+    pub bag: SavedBag,
 }
 
 impl BattleEntry {
@@ -36,6 +41,7 @@ impl BattleEntry {
                     trainer: Some(TrainerEntry {
                         id: *id,
                         location: *map,
+                        bag: trainer.bag.clone(),
                     }),
                 });
             }

@@ -4,7 +4,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::{character::Character};
+use crate::character::Character;
 
 use super::Npc;
 

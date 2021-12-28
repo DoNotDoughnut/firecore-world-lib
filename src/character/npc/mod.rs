@@ -2,8 +2,8 @@ use crate::positions::Coordinate;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use super::Character;
 use self::trainer::NpcTrainer;
+use super::Character;
 
 mod interact;
 pub use interact::*;

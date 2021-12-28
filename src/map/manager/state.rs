@@ -6,7 +6,7 @@ use hashbrown::{HashMap, HashSet};
 
 use crate::{
     character::npc::{trainer::BadgeId, Npc, NpcId},
-    map::{battle::TrainerEntry, warp::WarpDestination},
+    map::{battle::BattleEntry, warp::WarpDestination},
     positions::{Location, LocationId, Position},
     script::ScriptId,
 };
@@ -36,7 +36,7 @@ pub struct WorldMapState {
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct WorldBattleState {
     pub battled: HashMap<Location, HashSet<NpcId>>,
-    pub battling: Option<TrainerEntry>,
+    pub battling: Option<BattleEntry>,
 }
 impl WorldBattleState {
     pub fn insert(&mut self, location: &Location, npc: NpcId) {

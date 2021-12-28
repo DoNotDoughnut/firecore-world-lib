@@ -7,12 +7,11 @@ use crate::{positions::Direction, TILE_SIZE};
 type OffsetNum = f32;
 #[derive(Debug, Default, Clone, Copy, Deserialize, Serialize)]
 pub struct PixelOffset {
-	pub x: OffsetNum,
-	pub y: OffsetNum,
+    pub x: OffsetNum,
+    pub y: OffsetNum,
 }
 
 impl PixelOffset {
-
     pub fn is_zero(&self) -> bool {
         self.x == 0.0 && self.y == 0.0
     }
@@ -43,7 +42,6 @@ impl PixelOffset {
             self.y
         }
     }
-
 }
 
 impl AddAssign for PixelOffset {

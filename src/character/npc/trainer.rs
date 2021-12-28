@@ -11,7 +11,6 @@ pub type TransitionId = tinystr::TinyStr8;
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct NpcTrainer {
-
     pub character: Trainer,
 
     /// The trainer tracks a certain amount of tiles in front of them

@@ -1,6 +1,6 @@
 use crate::positions::{BoundingBox, Destination, Location};
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 pub type WarpId = tinystr::TinyStr16;
 pub type Warps = HashMap<WarpId, WarpEntry>;
@@ -16,18 +16,6 @@ pub struct WarpEntry {
 #[serde(deny_unknown_fields)]
 pub struct WarpDestination {
     pub location: Location,
-
-    pub position: Destination,
-    pub transition: WarpTransition,
-}
-
-#[deprecated(note = "will be replaced by checking warps for doors")]
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct WarpTransition {
-    pub move_on_exit: bool,
-    pub warp_on_tile: bool,
-
-    #[serde(default = "crate::default_true")]
-    pub change_music: bool,
+    /// Where the player will end up
+    pub destination: Destination,
 }

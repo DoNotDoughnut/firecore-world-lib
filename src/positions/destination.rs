@@ -17,7 +17,6 @@ pub struct Path {
 }
 
 impl Destination {
-
     pub fn to(from: &Position, to: Coordinate) -> Self {
         Self {
             coords: to,
@@ -35,7 +34,6 @@ impl Destination {
 }
 
 impl Path {
-
     pub fn clear(&mut self) {
         self.queue.clear();
         self.turn = None;
@@ -60,7 +58,6 @@ impl Path {
         self.queue.extend(vec![ydir; ylen.abs() as usize]);
         self.turn = destination.direction;
     }
-    
 }
 
 impl AddAssign for Path {

@@ -77,5 +77,4 @@ impl super::WorldMap {
             _ => return,
         }
     }
-
 }

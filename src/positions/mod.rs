@@ -2,18 +2,18 @@ mod direction;
 
 mod coordinate;
 
-mod position;
 mod location;
+mod position;
 
 mod destination;
 
-mod pixel_offset;
 mod bbox;
+mod pixel_offset;
 
-pub use direction::*;
-pub use coordinate::*;
-pub use position::*;
-pub use location::*;
-pub use destination::*;
-pub use pixel_offset::*;
 pub use bbox::*;
+pub use coordinate::*;
+pub use destination::*;
+pub use direction::*;
+pub use location::*;
+pub use pixel_offset::*;
+pub use position::*;

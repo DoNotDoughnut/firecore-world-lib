@@ -115,30 +115,30 @@ impl<R: Rng + SeedableRng + Clone> WorldMapManager<R> {
         }
     }
 
-    pub fn post_battle(&mut self, player: &mut PlayerCharacter, winner: bool, trainer: bool) {
+    pub fn post_battle(&mut self, player: &mut PlayerCharacter, winner: bool) {
         player.unfreeze();
         if winner {
             if let Some(entry) = player.world.battle.battling.take() {
-                if trainer {
-                    if let Some(trainer) = self
+                if let Some(trainer) = entry.trainer {
+                    if let Some(npc) = self
                         .data
                         .maps
-                        .get(&entry.location)
-                        .map(|map| map.npcs.get(&entry.id).map(|npc| npc.trainer.as_ref()))
+                        .get(&trainer.location)
+                        .map(|map| map.npcs.get(&trainer.id).map(|npc| npc.trainer.as_ref()))
                         .flatten()
                         .flatten()
                     {
-                        match &trainer.disable {
+                        match &npc.disable {
                             TrainerDisable::DisableSelf => {
-                                player.world.battle.insert(&entry.location, entry.id);
+                                player.world.battle.insert(&trainer.location, trainer.id);
                             }
                             TrainerDisable::Many(others) => {
-                                player.world.battle.insert(&entry.location, entry.id);
+                                player.world.battle.insert(&trainer.location, trainer.id);
                                 player
                                     .world
                                     .battle
                                     .battled
-                                    .get_mut(&entry.location)
+                                    .get_mut(&trainer.location)
                                     .unwrap()
                                     .extend(others);
                             }
@@ -582,7 +582,7 @@ impl<R: Rng + SeedableRng + Clone> WorldMapManager<R> {
     pub fn warp(&mut self, player: &mut PlayerCharacter, destination: WarpDestination) -> bool {
         match self.data.maps.contains_key(&destination.location) {
             true => {
-                player.position.from_destination(destination.position);
+                player.position.from_destination(destination.destination);
                 player.pathing.clear();
                 player.location = destination.location;
                 true

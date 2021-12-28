@@ -114,10 +114,7 @@ pub fn load_world(root_path: &Path) -> (Maps, SerializedTextures) {
 
 // pub(crate) type MapGuiPos = Option<(worldlib::map::MapIcon, String, Location)>;
 
-fn load_maps(
-    root: &Path,
-    file: &Path,
-) -> Result<WorldMap, LoadMapError> {
+fn load_maps(root: &Path, file: &Path) -> Result<WorldMap, LoadMapError> {
     println!("Loading map under: {:?}", root);
     let data = std::fs::read_to_string(file).unwrap_or_else(|err| {
         panic!(
@@ -205,7 +202,6 @@ pub fn load_map_from_config<P: AsRef<Path>>(
         wild: super::wild::load_wild_entries(root_path.join("wild.ron")),
         npcs: super::npc::load_npc_entries(root_path.join("npcs")),
         // scripts: super::script::load_script_entries(root_path.join("scripts"), extension),
-
         settings: config.settings,
     })
 }

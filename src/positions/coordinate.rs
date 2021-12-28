@@ -49,7 +49,6 @@ impl Coordinate {
     pub fn equal(&self, x: &CoordinateInt, y: &CoordinateInt) -> bool {
         self.x.eq(x) && self.y.eq(y)
     }
-
 }
 
 impl Add for Coordinate {

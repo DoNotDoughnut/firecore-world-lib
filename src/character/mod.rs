@@ -1,18 +1,16 @@
 use crate::positions::{Destination, Direction, Path, PixelOffset, Position};
 use serde::{Deserialize, Serialize};
 
+pub mod message;
 pub mod npc;
 pub mod player;
 pub mod sprite;
-pub mod message;
 pub mod trainer;
 // pub mod pathfind;
-
 
 #[derive(Default, Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Character {
-
     pub name: String,
 
     pub position: Position,
@@ -37,7 +35,6 @@ pub struct Character {
 
     #[serde(skip)]
     pub pathing: Path,
-
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize, Serialize)]
@@ -140,7 +137,6 @@ impl Character {
             Movement::Running | Movement::Swimming => 2.0,
         }
     }
-
 }
 
 impl Default for Movement {

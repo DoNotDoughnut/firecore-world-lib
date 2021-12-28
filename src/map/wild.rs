@@ -1,7 +1,7 @@
+use hashbrown::HashMap;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::ops::RangeInclusive;
-use hashbrown::HashMap;
 
 use pokedex::pokemon::{owned::SavedPokemon, party::Party, Level, PokemonId};
 

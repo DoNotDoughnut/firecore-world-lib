@@ -1,20 +1,28 @@
 use serde::{Deserialize, Serialize};
 use std::ops::{Deref, DerefMut};
 
-use crate::{positions::Location, map::manager::state::WorldMapState};
+use pokedex::pokemon::owned::SavedPokemon;
 
-use super::{Character, npc::{NpcId, Npc}, trainer::Trainer};
+use crate::{map::manager::state::WorldMapState, positions::Location};
+
+use super::{
+    npc::{Npc, NpcId},
+    trainer::Trainer,
+    Character,
+};
 
 #[derive(Default, Clone, Debug, Serialize, Deserialize)]
 pub struct PlayerCharacter {
     pub location: Location,
     pub character: Character,
     pub trainer: Trainer,
+
+    pub pc: Vec<SavedPokemon>,
+    pub world: WorldMapState,
+
     pub rival: String,
     pub input_frozen: bool,
     pub ignore: bool,
-    
-    pub world: WorldMapState,
 }
 
 impl Deref for PlayerCharacter {
@@ -32,7 +40,6 @@ impl DerefMut for PlayerCharacter {
 }
 
 impl PlayerCharacter {
-
     pub fn find_battle(&mut self, map: &Location, id: &NpcId, npc: &mut Npc) -> bool {
         if self.world.npc.active.is_none()
             && !self.world.battle.battled(map, id)
@@ -45,4 +52,11 @@ impl PlayerCharacter {
         }
     }
 
+    /// does not cover cases where pokemon cannot be sent to pc
+    pub fn give_pokemon(&mut self, pokemon: SavedPokemon) {
+        match self.trainer.party.is_full() {
+            true => self.pc.push(pokemon),
+            false => self.trainer.party.push(pokemon),
+        }
+    }
 }

@@ -79,9 +79,11 @@ fn palette(path: PathBuf) -> (PaletteId, SerializedPalette) {
             )
         }
         false => {
-            let id = crate::filename(&path).parse::<PaletteId>().unwrap_or_else(|err| {
-                panic!("Could not read palette id at {:?} with error {}", path, err)
-            });
+            let id = crate::filename(&path)
+                .parse::<PaletteId>()
+                .unwrap_or_else(|err| {
+                    panic!("Could not read palette id at {:?} with error {}", path, err)
+                });
 
             let palette = path.join("palette.png");
 
@@ -180,5 +182,3 @@ fn player(path: PathBuf) -> SerializedPlayerTexture {
 //     // }
 //     // doors
 // }
-
-

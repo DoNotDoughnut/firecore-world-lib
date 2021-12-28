@@ -1,6 +1,6 @@
 use either::Either;
-use serde::{Serialize, Deserialize};
-use world::positions::{LocationId, Location};
+use serde::{Deserialize, Serialize};
+use world::positions::{Location, LocationId};
 
 #[derive(Serialize, Deserialize, Clone, Copy)]
 #[serde(transparent)]

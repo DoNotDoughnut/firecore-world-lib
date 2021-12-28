@@ -2,7 +2,10 @@ use hashbrown::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{map::{TileId, PaletteId}, positions::Direction};
+use crate::{
+    map::{PaletteId, TileId},
+    positions::Direction,
+};
 
 // #[derive(Serialize, Deserialize)]
 // #[serde(transparent)]
@@ -18,7 +21,6 @@ use crate::{map::{TileId, PaletteId}, positions::Direction};
 
 pub type PaletteTileDatas = HashMap<PaletteId, PaletteTileData>;
 
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PaletteTileData {
     // pub bushes: HashMap<BushType, TileId>,
@@ -30,8 +32,6 @@ pub struct PaletteTileData {
 impl PaletteTileData {
     #[deprecated]
     pub fn temp_new(palette: PaletteId) -> Self {
-
-
         let forwarding = match palette {
             14 => vec![0x298, 0x2A5],
             _ => Default::default(),
@@ -49,7 +49,7 @@ impl PaletteTileData {
                 );
 
                 cliffs
-            },
+            }
             _ => Default::default(),
         };
 
@@ -68,11 +68,12 @@ impl PaletteTileData {
         }
     }
 
-    
-    pub fn iter<'a>(tiles: &'a PaletteTileDatas, palettes: &'a [PaletteId; 2]) -> impl Iterator<Item = &'a PaletteTileData> + 'a {
+    pub fn iter<'a>(
+        tiles: &'a PaletteTileDatas,
+        palettes: &'a [PaletteId; 2],
+    ) -> impl Iterator<Item = &'a PaletteTileData> + 'a {
         palettes.iter().flat_map(|p| tiles.get(p))
     }
-
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -89,7 +90,6 @@ pub enum WildLandType {
 }
 
 impl MapWildType {
-
     pub fn contains(&self, tile: &TileId) -> bool {
         match self {
             MapWildType::None => false,
@@ -97,7 +97,6 @@ impl MapWildType {
             MapWildType::All => true,
         }
     }
-
 }
 
 // #[derive(Serialize, Deserialize, PartialEq, Eq, Hash, Clone, Copy, Debug)]
