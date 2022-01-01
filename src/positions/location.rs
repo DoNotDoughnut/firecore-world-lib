@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use super::Position;
+
 pub type LocationId = tinystr::TinyStr16;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -8,6 +10,13 @@ pub struct Location {
     #[serde(default)]
     pub map: Option<LocationId>,
     pub index: LocationId,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Spot {
+    pub location: Location,
+    pub position: Position,
 }
 
 impl From<LocationId> for Location {

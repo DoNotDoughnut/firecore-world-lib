@@ -1,5 +1,5 @@
 use hashbrown::HashMap;
-use rand::{Rng, SeedableRng};
+use rand::{prelude::IteratorRandom, Rng, SeedableRng};
 use serde::{Deserialize, Serialize};
 
 use pokedex::moves::MoveId;
@@ -15,9 +15,9 @@ use crate::{
         player::PlayerCharacter,
         Movement,
     },
-    events::Sender,
+    events::{Sender, InputEvent},
     map::{MovementId, WarpDestination, WorldMap},
-    positions::{Coordinate, Direction, Location, Position},
+    positions::{BoundingBox, Coordinate, Direction, Location, Position},
 };
 
 use super::{
@@ -32,7 +32,6 @@ use self::{
     tile::{PaletteTileData, PaletteTileDatas},
 };
 
-pub mod state;
 pub mod tile;
 
 mod random;
@@ -51,7 +50,7 @@ pub struct WorldMapData {
     pub tiles: PaletteTileDatas,
     pub npcs: HashMap<NpcGroupId, NpcGroup>,
     pub wild: WildChances,
-    pub default: (Location, Position),
+    pub spawn: (Location, Position),
 }
 
 impl<R: Rng + SeedableRng + Clone> WorldMapManager<R> {
@@ -88,6 +87,13 @@ impl<R: Rng + SeedableRng + Clone> WorldMapManager<R> {
 
     pub fn on_change(&self, map: &WorldMap) {
         self.sender.send(WorldActions::PlayMusic(map.music));
+    }
+
+    pub fn input(&mut self, player: &mut PlayerCharacter, input: InputEvent) {
+        match input {
+            InputEvent::Move(direction) => self.try_move(player, direction),
+            InputEvent::Interact => self.try_interact(player),
+        }
     }
 
     pub fn try_interact(&mut self, player: &mut PlayerCharacter) {
@@ -142,15 +148,14 @@ impl<R: Rng + SeedableRng + Clone> WorldMapManager<R> {
                                     .unwrap()
                                     .extend(others);
                             }
-                            TrainerDisable::None => (),
                         }
                     }
                 }
             }
         } else {
-            let loc = player.world.heal.unwrap_or(self.data.default);
-            player.location = loc.0;
-            player.position = loc.1;
+            let (loc, pos) = player.world.heal.unwrap_or(self.data.spawn);
+            player.location = loc;
+            player.position = pos;
             player.location = player.location;
             player
                 .trainer
@@ -179,7 +184,7 @@ impl<R: Rng + SeedableRng + Clone> WorldMapManager<R> {
                 npc.character.do_move(delta);
             }
 
-            use crate::{character::npc::NpcMovement, positions::Destination};
+            use crate::character::npc::NpcMovement;
 
             match player.world.npc.timer > 0.0 {
                 false => {
@@ -187,47 +192,44 @@ impl<R: Rng + SeedableRng + Clone> WorldMapManager<R> {
 
                     const NPC_MOVE_CHANCE: f64 = 1.0 / 12.0;
 
-                    for (index, npc) in map.npcs.iter_mut() {
+                    for npc in map.npcs.values_mut() {
                         if !npc.character.moving() && self.randoms.npc.gen_bool(NPC_MOVE_CHANCE) {
-                            match npc.movement {
-                                NpcMovement::Still => (),
-                                NpcMovement::LookAround => {
-                                    npc.character.position.direction =
-                                        Direction::DIRECTIONS[self.randoms.npc.gen_range(0..4)];
-                                    player.find_battle(&map.id, index, npc);
-                                }
-                                NpcMovement::WalkUpAndDown(steps) => {
-                                    let origin =
-                                        npc.origin.get_or_insert(npc.character.position.coords);
-                                    let direction = if npc.character.position.coords.y
-                                        <= origin.y - steps as i32
-                                    {
-                                        Direction::Down
-                                    } else if npc.character.position.coords.y
-                                        >= origin.y + steps as i32
-                                    {
-                                        Direction::Up
-                                    } else if self.randoms.npc.gen_bool(0.5) {
-                                        Direction::Down
-                                    } else {
-                                        Direction::Up
-                                    };
-                                    let coords =
-                                        npc.character.position.coords.in_direction(direction);
-                                    if WorldMap::can_move(
-                                        npc.character.position.elevation,
-                                        map.movements[npc.character.position.coords.x as usize
-                                            + npc.character.position.coords.y as usize
-                                                * map.width as usize],
-                                    ) {
-                                        npc.character.position.direction = direction;
-                                        if !player.find_battle(&map.id, index, npc)
-                                            && coords.y != player.position.coords.y
+                            for movement in npc.movement.iter() {
+                                match movement {
+                                    NpcMovement::Look(directions) => {
+                                        if let Some(direction) =
+                                            directions.iter().choose(&mut self.randoms.npc)
                                         {
-                                            npc.character.pathing.extend(
-                                                &npc.character.position,
-                                                Destination::to(&npc.character.position, coords),
-                                            );
+                                            npc.character.position.direction = *direction;
+                                        }
+                                        if let Some(trainer) = npc.trainer.as_ref() {
+                                            player.find_battle(&map.id, &npc.id, trainer, &mut npc.character);
+                                        }
+                                    }
+                                    NpcMovement::Move(area) => {
+                                        let origin =
+                                            npc.origin.get_or_insert(npc.character.position.coords);
+
+                                        let next = npc.character.position.forwards();
+
+                                        let bb = BoundingBox::centered(*origin, *area);
+
+                                        if bb.contains(&next) {
+                                            if let Some(code) = map.movements.get(
+                                                npc.character.position.coords.x as usize
+                                                    + npc.character.position.coords.y as usize
+                                                        * map.width as usize,
+                                            ) {
+                                                if WorldMap::can_move(
+                                                    npc.character.position.elevation,
+                                                    *code,
+                                                ) {
+                                                    npc.character
+                                                        .pathing
+                                                        .queue
+                                                        .push(npc.character.position.direction);
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -388,8 +390,10 @@ impl<R: Rng + SeedableRng + Clone> WorldMapManager<R> {
             }
 
             if player.world.npc.active.is_none() {
-                for (id, npc) in map.npcs.iter_mut().filter(|(_, npc)| npc.trainer.is_some()) {
-                    player.find_battle(&map.id, id, npc);
+                for npc in map.npcs.values_mut() {
+                    if let Some(trainer) = &npc.trainer {
+                        player.find_battle(&map.id, &npc.id, trainer, &mut npc.character);
+                    }
                 }
             }
         }
@@ -450,7 +454,7 @@ impl<R: Rng + SeedableRng + Clone> WorldMapManager<R> {
         player.stop_move();
 
         if let Some(map) = self.data.maps.get(&player.location) {
-            if let Some(destination) = map.warp_at(player.position.coords) {
+            if let Some(destination) = map.warp_at(&player.position.coords) {
                 // Warping does not trigger tile actions!
                 player.world.warp = Some(*destination);
             } else if map.in_bounds(player.position.coords) {
@@ -477,7 +481,7 @@ impl<R: Rng + SeedableRng + Clone> WorldMapManager<R> {
         if let Some(map) = self.get(&player.location) {
             // Check for warp on tile
             if player.world.warp.is_none() {
-                if let Some(destination) = map.warp_at(coords) {
+                if let Some(destination) = map.warp_at(&coords) {
                     player.world.warp = Some(*destination);
                     self.sender.send(WorldActions::BeginWarpTransition(coords));
                     return;
@@ -502,13 +506,13 @@ impl<R: Rng + SeedableRng + Clone> WorldMapManager<R> {
                 return;
             }
 
-            match map.chunk_movement(coords) {
+            match map.chunk_movement(coords, player) {
                 MapMovementResult::Option(code) => {
                     with_code(player, code.unwrap_or(1), direction);
                 }
                 MapMovementResult::Chunk(direction, offset, connection) => {
                     if let Some((location, coords, code)) =
-                        self.connection_movement(direction, offset, connection)
+                        self.connection_movement(direction, offset, connection, player)
                     {
                         if with_code(player, code, direction) {
                             player.character.position.coords = coords;
@@ -563,6 +567,7 @@ impl<R: Rng + SeedableRng + Clone> WorldMapManager<R> {
         direction: Direction,
         offset: i32,
         connections: &[Connection],
+        player: &PlayerCharacter,
     ) -> Option<(Location, Coordinate, MovementId)> {
         connections.iter().find_map(|connection| {
             self.data
@@ -572,7 +577,7 @@ impl<R: Rng + SeedableRng + Clone> WorldMapManager<R> {
                     let o = offset - connection.1;
                     let position = Connection::offset(direction, map, o);
                     let coords = position.in_direction(direction);
-                    map.local_movement(coords)
+                    map.local_movement(coords, player)
                         .map(|code| (map.id, position, code))
                 })
                 .flatten()
@@ -582,7 +587,7 @@ impl<R: Rng + SeedableRng + Clone> WorldMapManager<R> {
     pub fn warp(&mut self, player: &mut PlayerCharacter, destination: WarpDestination) -> bool {
         match self.data.maps.contains_key(&destination.location) {
             true => {
-                player.position.from_destination(destination.destination);
+                player.position.from_destination(destination.position);
                 player.pathing.clear();
                 player.location = destination.location;
                 true

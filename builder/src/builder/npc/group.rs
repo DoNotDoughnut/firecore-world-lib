@@ -6,12 +6,13 @@ use hashbrown::HashMap;
 
 use world::{
     character::npc::group::{NpcGroup, NpcGroupId},
-    serialized::SerializedNpcGroup,
+    serialized::SerializedNpcGroupTextures,
 };
 
-pub fn load_npc_types(root_path: &Path) -> HashMap<NpcGroupId, SerializedNpcGroup> {
+pub fn load_npc_types(root_path: &Path) -> (HashMap<NpcGroupId, NpcGroup>, SerializedNpcGroupTextures)  {
     let npc_types = root_path.join("npcs");
     let mut types = HashMap::new();
+    let mut textures = HashMap::new();
 
     for entry in read_dir(&npc_types)
         .unwrap_or_else(|err| {
@@ -64,11 +65,12 @@ pub fn load_npc_types(root_path: &Path) -> HashMap<NpcGroupId, SerializedNpcGrou
                 )
             });
 
-            types.insert(id1, SerializedNpcGroup { group, texture });
+            types.insert(id1, group);
+            textures.insert(id1, texture);
         }
     }
 
-    types
+    (types, textures)
 }
 
 fn get_npc_type_file(path: &Path) -> PathBuf {

@@ -83,7 +83,7 @@ pub fn load_world(root_path: &Path) -> (Maps, SerializedTextures) {
                                             world_maps.insert(map.id, map);
                                         }
                                         Err(err) => {
-                                            panic!("Could not deserialize map with error {}", err)
+                                            panic!("Could not deserialize map at {:?} with error {}", file, err)
                                         }
                                     },
                                     Err(err) => eprintln!(
@@ -203,6 +203,9 @@ pub fn load_map_from_config<P: AsRef<Path>>(
         npcs: super::npc::load_npc_entries(root_path.join("npcs")),
         // scripts: super::script::load_script_entries(root_path.join("scripts"), extension),
         settings: config.settings,
+        objects: Default::default(),
+        items: Default::default(),
+        signs: Default::default(),
     })
 }
 

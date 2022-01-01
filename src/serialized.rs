@@ -4,13 +4,10 @@ use hashbrown::HashMap;
 
 use crate::{
     character::{
-        npc::{
-            group::{NpcGroup, NpcGroupId},
-            Npc, NpcId,
-        },
+        npc::{group::NpcGroupId, Npc, NpcId},
         Movement,
     },
-    map::{manager::Maps, PaletteId, TileId},
+    map::{manager::WorldMapData, PaletteId, TileId, object::ObjectId},
     // positions::Location,
 };
 
@@ -20,9 +17,7 @@ type Texture = Vec<u8>;
 
 #[derive(Deserialize, Serialize)]
 pub struct SerializedWorld {
-    pub maps: Maps,
-
-    pub npcs: HashMap<NpcGroupId, SerializedNpcGroup>,
+    pub data: WorldMapData,
     // pub map_gui_locs: MapGuiLocs,
     pub textures: SerializedTextures,
 }
@@ -33,18 +28,16 @@ pub struct SerializedNpc {
     pub npc: Npc,
 }
 
-#[derive(Deserialize, Serialize)]
-pub struct SerializedNpcGroup {
-    pub group: NpcGroup,
-    pub texture: Vec<u8>,
-}
-
 pub type SerializedPaletteMap = HashMap<PaletteId, SerializedPalette>;
 pub type SerializedPlayerTexture = HashMap<Movement, Texture>;
+pub type SerializedNpcGroupTextures = HashMap<NpcGroupId, Texture>;
+pub type SerializedObjectTextures = HashMap<ObjectId, Texture>;
 
 #[derive(Deserialize, Serialize)]
 pub struct SerializedTextures {
     pub palettes: SerializedPaletteMap,
+    pub npcs: SerializedNpcGroupTextures,
+    pub objects: SerializedObjectTextures,
     pub player: SerializedPlayerTexture,
 }
 

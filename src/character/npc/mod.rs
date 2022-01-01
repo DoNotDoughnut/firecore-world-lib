@@ -1,9 +1,10 @@
-use crate::positions::Coordinate;
+use hashbrown::{HashMap, HashSet};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
-use self::trainer::NpcTrainer;
-use super::Character;
+use crate::{
+    character::Character,
+    positions::{Coordinate, Direction},
+};
 
 mod interact;
 pub use interact::*;
@@ -17,6 +18,8 @@ pub type Npcs = HashMap<NpcId, Npc>;
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Npc {
+    pub id: NpcId,
+
     pub character: Character,
     /// The NPC's type.
     /// This determines the texture of the NPC,
@@ -25,25 +28,20 @@ pub struct Npc {
     #[serde(rename = "type")]
     pub group: group::NpcGroupId,
     #[serde(default)]
-    pub movement: NpcMovement,
-    #[serde(skip, default)]
+    pub movement: Vec<NpcMovement>,
+    #[serde(default)]
     pub origin: Option<Coordinate>,
 
     #[serde(default)]
     pub interact: NpcInteract,
 
-    pub trainer: Option<NpcTrainer>,
+    pub trainer: Option<trainer::NpcTrainer>,
 }
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+
+/// to - do: implement non-random npc movement (like spinners)
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub enum NpcMovement {
-    Still,
-    LookAround,
-    WalkUpAndDown(u8),
-}
-
-impl Default for NpcMovement {
-    fn default() -> Self {
-        Self::Still
-    }
+    Look(HashSet<Direction>),
+    Move(Coordinate),
 }

@@ -68,7 +68,7 @@ impl GbaMap {
         })
     }
 
-    pub fn map_music(music: u8) -> Result<tinystr::TinyStr16, GbaMapError> {
+    pub fn map_music(music: u8) -> Result<MusicId, GbaMapError> {
         let m = match music {
             0x35 => "celadon",
             0x17 => "cinnabar",

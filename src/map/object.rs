@@ -1,23 +1,30 @@
 use serde::{Deserialize, Serialize};
 
-use firecore_utils::Coordinate;
+use pokedex::item::{ItemId, ItemStack};
 
-#[derive(Deserialize, Serialize)]
+pub mod group;
+pub use group::*;
+
+use crate::positions::Coordinate;
+
+pub type ObjectId = tinystr::TinyStr8;
+
+pub type Objects = hashbrown::HashMap<Coordinate, MapObject>;
+pub type Items = hashbrown::HashMap<Coordinate, ItemObject>;
+pub type Signs = hashbrown::HashMap<Coordinate, SignObject>;
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct MapObject {
-
-    pub active: bool,
-    pub id: usize,
-    pub location: Coordinate,
-    pub object_type: MapObjectType,
-
+    pub group: ObjectId,
 }
 
-#[derive(Deserialize, Serialize)]
-pub enum MapObjectType {
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct ItemObject {
+    pub item: ItemStack<ItemId>,
+    pub hidden: bool,
+}
 
-    Item,
-    Tree,
-    SmashableRock,
-    PushableRock,
-
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct SignObject {
+    pub message: Vec<Vec<String>>,
 }

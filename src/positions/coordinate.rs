@@ -2,7 +2,7 @@ use std::ops::{Add, AddAssign, Sub, SubAssign};
 
 use serde::{Deserialize, Serialize};
 
-use crate::positions::{Direction, Position};
+use crate::{positions::{Direction, Position}, map::movement::Elevation};
 
 pub type CoordinateInt = i32;
 
@@ -10,6 +10,11 @@ pub type CoordinateInt = i32;
 pub struct Coordinate {
     pub x: CoordinateInt,
     pub y: CoordinateInt,
+}
+
+pub struct Coordinate3d {
+    pub xy: Coordinate,
+    pub elevation: Elevation,
 }
 
 impl Coordinate {

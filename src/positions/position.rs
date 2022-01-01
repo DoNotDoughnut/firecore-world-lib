@@ -5,7 +5,7 @@ use crate::{
     positions::{Coordinate, Destination, Direction},
 };
 
-#[derive(Debug, Default, Clone, Copy, Deserialize, Serialize)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub struct Position {
     pub coords: Coordinate,
     pub direction: Direction,

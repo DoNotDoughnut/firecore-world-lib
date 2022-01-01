@@ -3,10 +3,9 @@ use std::ops::{Deref, DerefMut};
 use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
 
-use crate::character::{npc::NpcId, trainer::Trainer};
+use crate::{character::{npc::NpcId, trainer::Trainer, Character}, positions::Destination};
 
 pub type BadgeId = tinystr::TinyStr16;
-pub type TransitionId = tinystr::TinyStr8;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -14,12 +13,9 @@ pub struct NpcTrainer {
     pub character: Trainer,
 
     /// The trainer tracks a certain amount of tiles in front of them
-    pub tracking: Option<u8>,
+    pub sight: Option<u8>,
 
     pub encounter: Vec<Vec<String>>,
-    #[serde(default = "default_battle_transition")]
-    pub transition: TransitionId,
-
     pub defeat: Vec<Vec<String>>,
 
     #[serde(default)]
@@ -34,17 +30,32 @@ pub enum TrainerDisable {
     #[serde(rename = "Self")]
     DisableSelf,
     Many(HashSet<NpcId>),
-    None,
+}
+
+impl NpcTrainer {
+
+    pub fn find_character(&self, character: &mut Character, find: &mut Character) -> bool {
+        if self.sight
+            .map(|sight| character.sees(sight, &find.position))
+            .unwrap_or_default()
+        {
+            character.pathing.extend(
+                &character.position,
+                Destination::next_to(&character.position, find.position.coords),
+            );
+            character.freeze();
+            true
+        } else {
+            false
+        }
+    }
+
 }
 
 impl Default for TrainerDisable {
     fn default() -> Self {
         Self::DisableSelf
     }
-}
-
-fn default_battle_transition() -> TransitionId {
-    "default".parse().unwrap()
 }
 
 impl Deref for NpcTrainer {

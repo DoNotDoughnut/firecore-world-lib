@@ -11,12 +11,6 @@ pub enum Direction {
 }
 
 impl Direction {
-    pub const DIRECTIONS: [Direction; 4] = [
-        Direction::Down,
-        Direction::Up,
-        Direction::Left,
-        Direction::Right,
-    ];
 
     pub const fn inverse(&self) -> Direction {
         match self {

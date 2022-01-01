@@ -3,10 +3,10 @@ use std::ops::{Deref, DerefMut};
 
 use pokedex::pokemon::owned::SavedPokemon;
 
-use crate::{map::manager::state::WorldMapState, positions::Location};
+use crate::{positions::{Location, Position}, state::WorldState};
 
 use super::{
-    npc::{Npc, NpcId},
+    npc::{trainer::NpcTrainer, NpcId},
     trainer::Trainer,
     Character,
 };
@@ -18,7 +18,7 @@ pub struct PlayerCharacter {
     pub trainer: Trainer,
 
     pub pc: Vec<SavedPokemon>,
-    pub world: WorldMapState,
+    pub world: WorldState,
 
     pub rival: String,
     pub input_frozen: bool,
@@ -40,10 +40,34 @@ impl DerefMut for PlayerCharacter {
 }
 
 impl PlayerCharacter {
-    pub fn find_battle(&mut self, map: &Location, id: &NpcId, npc: &mut Npc) -> bool {
+
+    pub fn new(name: impl Into<String>, rival: impl Into<String>, spawn: (Location, Position)) -> Self {
+        Self {
+            location: spawn.0,
+            character: Character {
+                name: name.into(),
+                position: spawn.1,
+                ..Default::default()
+            },
+            trainer: Default::default(),
+            pc: Default::default(),
+            world: Default::default(),
+            rival: rival.into(),
+            input_frozen: false,
+            ignore: false,
+        }
+    }
+
+    pub fn find_battle(
+        &mut self,
+        map: &Location,
+        id: &NpcId,
+        trainer: &NpcTrainer,
+        character: &mut Character,
+    ) -> bool {
         if self.world.npc.active.is_none()
             && !self.world.battle.battled(map, id)
-            && npc.find_character(&mut self.character)
+            && trainer.find_character(character, &mut self.character)
         {
             self.world.npc.active = Some(*id);
             true

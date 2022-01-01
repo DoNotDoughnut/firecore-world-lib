@@ -53,6 +53,8 @@ pub fn get_textures<P: AsRef<Path>>(textures: P) -> SerializedTextures {
         //     .collect(),
         // doors:,
         player: player(textures.join("player")),
+        npcs: Default::default(),
+        objects: read_folder(textures.join("objects")),
     }
 }
 

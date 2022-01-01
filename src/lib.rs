@@ -1,9 +1,11 @@
+
 pub extern crate firecore_pokedex as pokedex;
 
 pub mod character;
 pub mod map;
 pub mod positions;
 pub mod script;
+pub mod state;
 
 pub mod serialized;
 
@@ -11,7 +13,18 @@ pub const TILE_SIZE: f32 = 16.0;
 
 pub mod events {
 
-    use std::{cell::Cell, rc::Rc};
+    use crate::positions::Direction;
+
+    #[derive(Debug, Clone, Copy)]
+    pub enum InputEvent {
+        Move(Direction),
+        Interact,
+    }
+
+    use std::sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    };
 
     pub use crossbeam_channel::Receiver;
 
@@ -33,11 +46,25 @@ pub mod events {
         }
     }
 
+    #[derive(Default, Debug, Clone)]
+    #[repr(transparent)]
+    pub struct Wait(Arc<AtomicBool>);
+
+    impl Wait {
+        pub fn update(&self) {
+            self.0.store(true, Ordering::Relaxed)
+        }
+
+        pub fn get(&self) -> bool {
+            self.0.load(Ordering::Relaxed)
+        }
+    }
+
     impl<T: WaitableAction> Sender<T> {
-        pub fn send_polling(&self, msg: impl Into<T>) -> Option<Rc<Cell<bool>>> {
+        pub fn send_polling(&self, msg: impl Into<T>) -> Option<Wait> {
             let mut msg = msg.into();
             if msg.waitable() {
-                let waiter = Rc::new(Cell::new(false));
+                let waiter = Wait::default();
                 msg.give(waiter.clone());
                 self.send(msg);
                 return Some(waiter);
@@ -51,29 +78,28 @@ pub mod events {
     pub trait WaitableAction {
         fn waitable(&self) -> bool;
 
-        fn give(&mut self, waiter: Rc<Cell<bool>>);
+        fn give(&mut self, waiter: Wait);
     }
 }
 
 pub mod actions {
-    use std::{cell::Cell, rc::Rc};
-
-    use tinystr::TinyStr16;
 
     use crate::{
-        character::npc::group::MessageColor, events::WaitableAction, map::battle::BattleEntry,
+        character::npc::group::MessageColor,
+        events::{Wait, WaitableAction},
+        map::{battle::BattleEntry, MusicId},
         positions::Coordinate,
     };
 
     #[derive(Debug, Clone)]
     pub struct WorldAction {
         pub action: WorldActions,
-        pub receiver: Option<Rc<Cell<bool>>>,
+        pub waiter: Option<Wait>,
     }
 
     #[derive(Debug, Clone)]
     pub enum WorldActions {
-        PlayMusic(TinyStr16),
+        PlayMusic(MusicId),
         BeginWarpTransition(Coordinate),
         PlayerJump,
         Message(Vec<Vec<String>>, MessageColor),
@@ -89,8 +115,8 @@ pub mod actions {
             matches!(self.action, WorldActions::Message(..))
         }
 
-        fn give(&mut self, waiter: Rc<Cell<bool>>) {
-            self.receiver = Some(waiter);
+        fn give(&mut self, waiter: Wait) {
+            self.waiter = Some(waiter);
         }
     }
 
@@ -98,7 +124,7 @@ pub mod actions {
         fn from(action: WorldActions) -> Self {
             Self {
                 action,
-                receiver: None,
+                waiter: None,
             }
         }
     }

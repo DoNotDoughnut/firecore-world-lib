@@ -1,7 +1,7 @@
 pub extern crate firecore_world as world;
 
 use world::{
-    map::{chunk::Connection, manager::Maps, warp::WarpEntry, PaletteId},
+    map::{chunk::Connection, manager::{Maps, WorldMapData}, warp::WarpEntry, PaletteId},
     serialized::{SerializedTextures, SerializedWorld},
 };
 
@@ -15,19 +15,43 @@ pub fn compile(path: impl AsRef<std::path::Path>) -> SerializedWorld {
     let (maps, mut textures) = builder::map::load_world(path.as_ref());
     println!("Finished loading maps and tile textures.");
 
+    let builder::BuilderWorldData { tiles, wild, spawn } = {
+        let path = path.as_ref().join("data.ron");
+        ron::from_str::<builder::BuilderWorldData>(&std::fs::read_to_string(&path).unwrap_or_else(
+            |err| {
+                panic!(
+                    "Could not read world data file at {:?} with error {}",
+                    path, err
+                )
+            },
+        ))
+        .unwrap_or_else(|err| {
+            panic!(
+                "Could not deserialize world data file at {:?} with error {}",
+                path, err
+            )
+        })
+    };
+
     println!("Verifying palettes, maps, warps...");
     verify_palettes(&maps, &mut textures);
     verify_warps(&maps);
     verify_connections(&maps);
 
     println!("Loading Npc types...");
-    let npcs = builder::npc::group::load_npc_types(path.as_ref());
+    let (npcs, npc_textures) = builder::npc::group::load_npc_types(path.as_ref());
+
+    textures.npcs = npc_textures;
 
     let data = SerializedWorld {
-        maps,
-        npcs,
+        data: WorldMapData {
+            maps,
+            tiles,
+            npcs,
+            wild,
+            spawn,
+        },
         textures,
-        // map_gui_locs,
     };
 
     data
@@ -69,7 +93,7 @@ fn verify_palettes(maps: &Maps, textures: &mut SerializedTextures) {
 fn verify_warps(maps: &Maps) {
     let mut errors: u32 = 0;
     for map in maps.values() {
-        for warp in map.warps.values() {
+        for warp in map.warps.iter() {
             errors += verify_warp(warp, &map.name, maps);
         }
     }

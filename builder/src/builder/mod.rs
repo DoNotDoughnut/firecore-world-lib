@@ -1,13 +1,12 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use tinystr::TinyStr16;
 
 use world::{
-    map::{chunk::Connection, PaletteId, WorldMapSettings},
-    positions::{CoordinateInt, Direction},
+    map::{chunk::Connection, PaletteId, WorldMapSettings, manager::tile::PaletteTileDatas, wild::WildChances, MusicId},
+    positions::{CoordinateInt, Direction, Location, Position},
 };
 
-use self::location::MapLocation;
+use self::structs::BuilderLocation;
 
 pub mod map;
 pub mod textures;
@@ -18,13 +17,12 @@ pub mod npc;
 pub mod warp;
 pub mod wild;
 
-pub mod location;
+pub mod structs;
 
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct MapConfig {
-    // #[deprecated(note = "use full location")]
-    pub identifier: MapLocation,
+    pub identifier: BuilderLocation,
     pub name: String,
 
     /// Map file path
@@ -37,10 +35,10 @@ pub struct MapConfig {
 
     pub palettes: [PaletteId; 2],
 
-    pub music: TinyStr16,
+    pub music: MusicId,
 
     #[serde(default)]
-    pub chunk: HashMap<Direction, Vec<MapConnection>>,
+    pub chunk: HashMap<Direction, Vec<BuilderConnection>>,
 
     #[serde(default)]
     pub settings: WorldMapSettings,
@@ -49,15 +47,22 @@ pub struct MapConfig {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct MapConnection(MapLocation, CoordinateInt);
+pub struct BuilderWorldData {
+    pub tiles: PaletteTileDatas,
+    pub wild: WildChances,
+    pub spawn: (Location, Position),
+}
 
-impl From<MapConnection> for Connection {
-    fn from(connection: MapConnection) -> Self {
+#[derive(Serialize, Deserialize)]
+pub struct BuilderConnection(BuilderLocation, CoordinateInt);
+
+impl From<BuilderConnection> for Connection {
+    fn from(connection: BuilderConnection) -> Self {
         Self(connection.0.into(), connection.1)
     }
 }
 
-impl From<Connection> for MapConnection {
+impl From<Connection> for BuilderConnection {
     fn from(connection: Connection) -> Self {
         Self(connection.0.into(), connection.1)
     }

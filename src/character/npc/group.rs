@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
-use tinystr::TinyStr16;
 
-pub type NpcGroupId = TinyStr16;
+use crate::map::MusicId;
+
+pub type NpcGroupId = tinystr::TinyStr16;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NpcGroup {
@@ -21,7 +22,7 @@ pub enum MessageColor {
 #[serde(deny_unknown_fields)]
 pub struct TrainerGroup {
     pub name: String,
-    pub music: Option<TinyStr16>,
+    pub music: Option<MusicId>,
 }
 
 impl NpcGroup {

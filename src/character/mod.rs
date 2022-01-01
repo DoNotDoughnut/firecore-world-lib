@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 pub mod message;
 pub mod npc;
 pub mod player;
-pub mod sprite;
 pub mod trainer;
 // pub mod pathfind;
 
@@ -129,6 +128,48 @@ impl Character {
         } else {
             false
         }
+    }
+
+    pub fn sees(&self, sight: u8, position: &Position) -> bool {
+        let tracker = sight as i32;
+        if position.elevation != self.position.elevation {
+            return false;
+        }
+        match self.position.direction {
+            Direction::Up => {
+                if self.position.coords.x == position.coords.x
+                    && self.position.coords.y > position.coords.y
+                    && self.position.coords.y - tracker <= position.coords.y
+                {
+                    return true;
+                }
+            }
+            Direction::Down => {
+                if self.position.coords.x == position.coords.x
+                    && self.position.coords.y < position.coords.y
+                    && self.position.coords.y + tracker >= position.coords.y
+                {
+                    return true;
+                }
+            }
+            Direction::Left => {
+                if self.position.coords.y == position.coords.y
+                    && self.position.coords.x > position.coords.x
+                    && self.position.coords.x - tracker <= position.coords.x
+                {
+                    return true;
+                }
+            }
+            Direction::Right => {
+                if self.position.coords.y == position.coords.y
+                    && self.position.coords.x < position.coords.x
+                    && self.position.coords.x + tracker >= position.coords.x
+                {
+                    return true;
+                }
+            }
+        }
+        false
     }
 
     pub fn speed(&self) -> f32 {

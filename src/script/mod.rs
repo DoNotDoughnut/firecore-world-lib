@@ -1,4 +1,4 @@
-// pub mod world;
+pub mod world;
 
 pub type ScriptId = tinystr::TinyStr16;
 

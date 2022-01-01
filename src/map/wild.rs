@@ -10,7 +10,6 @@ use super::battle::BattleEntry;
 pub type Ratio = u8;
 
 pub type WildEntries = HashMap<WildType, WildEntry>;
-
 pub type WildChances = HashMap<WildType, Vec<u8>>;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
@@ -23,7 +22,6 @@ pub enum WildType {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WildEntry {
-    #[serde(default = "WildEntry::default_ratio")]
     pub ratio: Ratio,
     pub encounters: Vec<WildPokemon>,
 }
@@ -35,10 +33,6 @@ pub struct WildPokemon {
 }
 
 impl WildEntry {
-    pub const fn default_ratio() -> Ratio {
-        21
-    }
-
     pub fn should_encounter(&self, random: &mut impl Rng) -> bool {
         random.gen_range(Ratio::MIN..Ratio::MAX) < self.ratio
     }
@@ -74,19 +68,4 @@ fn encounter_index(chances: &WildChances, t: &WildType, random: &mut impl Rng) -
         counter += 1;
     }
     counter - 1
-}
-
-#[deprecated]
-pub fn default_chances() -> WildChances {
-    let mut wild_chances = WildChances::with_capacity(6);
-    wild_chances.insert(
-        WildType::Land,
-        vec![20, 20, 10, 10, 10, 10, 5, 5, 4, 4, 1, 1],
-    );
-    wild_chances.insert(WildType::Water, vec![60, 30, 5, 4, 1]);
-    wild_chances.insert(WildType::Rock, vec![60, 30, 5, 4, 1]);
-    wild_chances.insert(WildType::Fishing(0), vec![70, 30]);
-    wild_chances.insert(WildType::Fishing(1), vec![60, 20, 20]);
-    wild_chances.insert(WildType::Fishing(2), vec![40, 40, 15, 4, 1]);
-    wild_chances
 }

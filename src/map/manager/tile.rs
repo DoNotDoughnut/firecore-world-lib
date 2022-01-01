@@ -21,53 +21,19 @@ use crate::{
 
 pub type PaletteTileDatas = HashMap<PaletteId, PaletteTileData>;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct PaletteTileData {
     // pub bushes: HashMap<BushType, TileId>,
+    #[serde(default)]
     pub wild: MapWildType,
+    #[serde(default)]
     pub cliffs: HashMap<Direction, Vec<TileId>>,
+    #[serde(default)]
     pub forwarding: Vec<TileId>,
 }
 
 impl PaletteTileData {
-    #[deprecated]
-    pub fn temp_new(palette: PaletteId) -> Self {
-        let forwarding = match palette {
-            14 => vec![0x298, 0x2A5],
-            _ => Default::default(),
-        };
-
-        let cliffs = match palette {
-            0 => {
-                let mut cliffs = HashMap::with_capacity(1);
-
-                cliffs.insert(Direction::Left, vec![133]);
-                cliffs.insert(Direction::Right, vec![134]);
-                cliffs.insert(
-                    Direction::Down,
-                    vec![135, 176, 177, 143, 151, 184, 185, 192, 193, 1234],
-                );
-
-                cliffs
-            }
-            _ => Default::default(),
-        };
-
-        let wild = match palette {
-            0 => MapWildType::Some(vec![0x0D, 290, 291, 292, 298, 299, 300, 305]),
-            2 => MapWildType::Some(vec![421, 423, 429, 430, 431]),
-            15 | 40 | 43 | 59 | 60 => MapWildType::All,
-            _ => MapWildType::None,
-        };
-
-        Self {
-            // bushes: Default::default(),
-            wild,
-            cliffs,
-            forwarding,
-        }
-    }
-
     pub fn iter<'a>(
         tiles: &'a PaletteTileDatas,
         palettes: &'a [PaletteId; 2],
@@ -83,11 +49,11 @@ pub enum MapWildType {
     All,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub enum WildLandType {
-    Land,
-    Water,
-}
+// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+// pub enum WildLandType {
+//     Land,
+//     Water,
+// }
 
 impl MapWildType {
     pub fn contains(&self, tile: &TileId) -> bool {
@@ -96,6 +62,12 @@ impl MapWildType {
             MapWildType::Some(tiles) => tiles.contains(tile),
             MapWildType::All => true,
         }
+    }
+}
+
+impl Default for MapWildType {
+    fn default() -> Self {
+        Self::None
     }
 }
 

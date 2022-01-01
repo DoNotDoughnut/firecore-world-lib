@@ -8,9 +8,8 @@ use pokedex::{
 use crate::{
     character::npc::{Npc, NpcId},
     positions::Location,
+    state::WorldBattleState,
 };
-
-use super::manager::state::WorldBattleState;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct BattleEntry {

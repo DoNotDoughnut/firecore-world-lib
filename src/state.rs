@@ -1,18 +1,19 @@
-use std::{cell::Cell, rc::Rc};
-
 use serde::{Deserialize, Serialize};
 
 use hashbrown::{HashMap, HashSet};
 
 use crate::{
     character::npc::{trainer::BadgeId, Npc, NpcId},
+    events::Wait,
     map::{battle::BattleEntry, warp::WarpDestination},
-    positions::{Location, LocationId, Position},
+    positions::{Location, Position, Coordinate},
     script::ScriptId,
 };
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct WorldMapState {
+pub struct WorldState {
+    #[serde(default)]
+    pub objects: HashMap<Location, Vec<Coordinate>>,
     #[serde(default)]
     pub battle: WorldBattleState,
     #[serde(default)]
@@ -28,7 +29,7 @@ pub struct WorldMapState {
     #[serde(default)]
     pub badges: HashSet<BadgeId>,
     #[serde(skip)]
-    pub polling: Option<Rc<Cell<bool>>>,
+    pub polling: Option<Wait>,
     #[serde(default)]
     pub debug_draw: bool,
 }
@@ -79,38 +80,4 @@ impl Default for WorldGlobalWildData {
     fn default() -> Self {
         Self { encounters: true }
     }
-}
-
-pub const fn default_heal_loc() -> (Location, Position) {
-    (default_location(), default_position())
-}
-
-pub const fn default_location() -> Location {
-    Location {
-        map: Some(default_map()),
-        index: default_index(),
-    }
-}
-
-pub const fn default_position() -> Position {
-    Position {
-        coords: crate::positions::Coordinate { x: 6, y: 6 },
-        direction: crate::positions::Direction::Down,
-        elevation: None,
-    }
-}
-
-const DEFAULT_MAP: LocationId = unsafe { LocationId::new_unchecked(127978959561072u128) };
-const DEFAULT_INDEX: LocationId =
-    unsafe { LocationId::new_unchecked(132299152847616915686911088u128) };
-
-#[inline]
-pub const fn default_map() -> LocationId {
-    // To - do: get this from serialized world binary file
-    DEFAULT_MAP
-}
-
-#[inline]
-pub const fn default_index() -> LocationId {
-    DEFAULT_INDEX
 }
