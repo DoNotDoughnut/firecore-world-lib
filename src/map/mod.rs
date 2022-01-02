@@ -126,8 +126,21 @@ impl WorldMap {
                             .unwrap_or_default()
                     })
                     .copied();
+                let items = self
+                    .items
+                    .iter()
+                    .filter(|(coordinate, object)| {
+                        !object.hidden
+                            || !player
+                                .world
+                                .objects
+                                .get(&self.id)
+                                .map(|coords| coords.contains(&coordinate))
+                                .unwrap_or_default()
+                    })
+                    .map(|(c, ..)| *c);
                 // find used locations
-                match npcs.chain(objects).any(|c| c == coords) {
+                match npcs.chain(objects).chain(items).any(|c| c == coords) {
                     true => 1,
                     false => *code,
                 }

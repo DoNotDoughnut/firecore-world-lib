@@ -103,6 +103,7 @@ pub mod actions {
         BeginWarpTransition(Coordinate),
         PlayerJump,
         Message(Vec<Vec<String>>, MessageColor),
+        BreakObject(Coordinate),
 
         /// Should freeze player and start battle
         Battle(BattleEntry),

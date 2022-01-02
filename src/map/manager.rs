@@ -15,8 +15,8 @@ use crate::{
         player::PlayerCharacter,
         Movement,
     },
-    events::{Sender, InputEvent},
-    map::{MovementId, WarpDestination, WorldMap},
+    events::{InputEvent, Sender},
+    map::{object::ObjectId, MovementId, WarpDestination, WorldMap},
     positions::{BoundingBox, Coordinate, Direction, Location, Position},
 };
 
@@ -97,8 +97,8 @@ impl<R: Rng + SeedableRng + Clone> WorldMapManager<R> {
     }
 
     pub fn try_interact(&mut self, player: &mut PlayerCharacter) {
-        if player.world.npc.active.is_none() {
-            if let Some(map) = self.data.maps.get_mut(&player.location) {
+        if let Some(map) = self.data.maps.get_mut(&player.location) {
+            if player.world.npc.active.is_none() {
                 let pos = if map
                     .tile(player.position.coords)
                     .map(|tile| {
@@ -115,7 +115,39 @@ impl<R: Rng + SeedableRng + Clone> WorldMapManager<R> {
                     if (npc.interact.is_some() || npc.trainer.is_some()) && npc.interact_from(&pos)
                     {
                         player.world.npc.active = Some(*id);
+                        break;
                     }
+                }
+            }
+            let forward = player
+                .position
+                .coords
+                .in_direction(player.position.direction);
+            if let Some(object) = map.object_at(&forward) {
+                const TREE: &ObjectId = unsafe { &ObjectId::new_unchecked(1701147252) };
+                const CUT: &MoveId = unsafe { &MoveId::new_unchecked(7632227) };
+
+                const ROCK: &ObjectId = unsafe { &ObjectId::new_unchecked(1801678706) };
+                /// "rock-smash"
+                const ROCK_SMASH: &MoveId =
+                    unsafe { &MoveId::new_unchecked(493254510180952753532786) };
+
+                fn try_break(sender: &Sender<WorldAction>, location: &Location, coordinate: Coordinate, id: &MoveId, player: &mut PlayerCharacter) {
+                    if player
+                        .trainer
+                        .party
+                        .iter()
+                        .any(|p| p.moves.iter().any(|m| &m.0 == id))
+                    {
+                        sender.send(WorldActions::BreakObject(coordinate));
+                        player.world.insert_object(location, coordinate);
+                    }
+                }
+
+                match &object.group {
+                    TREE => try_break(&self.sender, &map.id, forward, CUT, player),
+                    ROCK => try_break(&self.sender, &map.id, forward, ROCK_SMASH, player),
+                    _ => (),
                 }
             }
         }
@@ -203,7 +235,12 @@ impl<R: Rng + SeedableRng + Clone> WorldMapManager<R> {
                                             npc.character.position.direction = *direction;
                                         }
                                         if let Some(trainer) = npc.trainer.as_ref() {
-                                            player.find_battle(&map.id, &npc.id, trainer, &mut npc.character);
+                                            player.find_battle(
+                                                &map.id,
+                                                &npc.id,
+                                                trainer,
+                                                &mut npc.character,
+                                            );
                                         }
                                     }
                                     NpcMovement::Move(area) => {

@@ -39,24 +39,6 @@ pub struct WorldBattleState {
     pub battled: HashMap<Location, HashSet<NpcId>>,
     pub battling: Option<BattleEntry>,
 }
-impl WorldBattleState {
-    pub fn insert(&mut self, location: &Location, npc: NpcId) {
-        if let Some(battled) = self.battled.get_mut(location) {
-            battled.insert(npc);
-        } else {
-            let mut battled = HashSet::with_capacity(1);
-            battled.insert(npc);
-            self.battled.insert(*location, battled);
-        }
-    }
-
-    pub fn battled(&self, map: &Location, npc: &NpcId) -> bool {
-        self.battled
-            .get(map)
-            .map(|battled| battled.contains(npc))
-            .unwrap_or_default()
-    }
-}
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct WorldGlobalScriptData {
@@ -74,6 +56,37 @@ pub struct WorldNpcData {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorldGlobalWildData {
     pub encounters: bool,
+}
+
+impl WorldState {
+
+    pub fn insert_object(&mut self, location: &Location, coordinate: Coordinate) {
+        if !self.objects.contains_key(location) {
+            self.objects.insert(*location, Default::default());
+        }
+        let objects = self.objects.get_mut(location).unwrap();
+        objects.push(coordinate)
+    }
+
+}
+
+impl WorldBattleState {
+    pub fn insert(&mut self, location: &Location, npc: NpcId) {
+        if let Some(battled) = self.battled.get_mut(location) {
+            battled.insert(npc);
+        } else {
+            let mut battled = HashSet::with_capacity(1);
+            battled.insert(npc);
+            self.battled.insert(*location, battled);
+        }
+    }
+
+    pub fn battled(&self, map: &Location, npc: &NpcId) -> bool {
+        self.battled
+            .get(map)
+            .map(|battled| battled.contains(npc))
+            .unwrap_or_default()
+    }
 }
 
 impl Default for WorldGlobalWildData {
