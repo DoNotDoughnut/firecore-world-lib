@@ -13,7 +13,7 @@ hashbrown = { version = "0.9", features = ["serde"] }
 # smallvec = { version = "1", features = ["union", "const_new"] }
 # enum-map = { version = "1", features = ["serde"] }
 
-firecore-pokedex = { version = "0.0.8", git = "https://github.com/fiirecore/pokedex", rev = "b5279db" }
+firecore-pokedex = { version = "0.0.8", git = "https://github.com/fiirecore/pokedex", rev = "858d72f" }
 # firecore-pokedex = { path = "../../firecore/pokedex" }
 
 crossbeam-channel = "0.5"

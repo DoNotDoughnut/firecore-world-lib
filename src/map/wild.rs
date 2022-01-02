@@ -44,9 +44,16 @@ impl WildEntry {
         random: &mut impl Rng,
     ) -> Option<BattleEntry> {
         if entry.should_encounter(random) {
-            let pokemon = &entry.encounters[encounter_index(chances, t, random)];
+            let chances = match chances.get(t) {
+                Some(chances) => chances,
+                None => return None,
+            };
+            let pokemon = match entry.encounters.get(encounter_index(chances, random)) {
+                Some(pokemon) => pokemon,
+                None => return None,
+            };
             let level = random.gen_range(pokemon.levels.clone());
-            let pokemon = SavedPokemon::generate(random, pokemon.species, level, None, None);
+            let pokemon = SavedPokemon::generate(pokemon.species, level, None, None);
             let mut party = Party::new();
             party.push(pokemon);
             return Some(BattleEntry {
@@ -59,12 +66,14 @@ impl WildEntry {
     }
 }
 
-fn encounter_index(chances: &WildChances, t: &WildType, random: &mut impl Rng) -> usize {
-    let chance = random.gen_range(1..100);
-    let mut chance_counter = 0;
+fn encounter_index(chances: &[u8], random: &mut impl Rng) -> usize {
+    let mut chance = random.gen_range(1..100u8);
     let mut counter = 0;
-    while chance > chance_counter {
-        chance_counter += chances[t][counter];
+    while chance > 0 {
+        match chances.get(counter) {
+            Some(by) => chance = chance.saturating_sub(*by),
+            None => return counter.saturating_sub(1),
+        }
         counter += 1;
     }
     counter - 1

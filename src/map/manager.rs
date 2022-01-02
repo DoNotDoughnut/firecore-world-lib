@@ -123,6 +123,7 @@ impl<R: Rng + SeedableRng + Clone> WorldMapManager<R> {
                 .position
                 .coords
                 .in_direction(player.position.direction);
+
             if let Some(object) = map.object_at(&forward) {
                 const TREE: &ObjectId = unsafe { &ObjectId::new_unchecked(1701147252) };
                 const CUT: &MoveId = unsafe { &MoveId::new_unchecked(7632227) };
@@ -132,7 +133,13 @@ impl<R: Rng + SeedableRng + Clone> WorldMapManager<R> {
                 const ROCK_SMASH: &MoveId =
                     unsafe { &MoveId::new_unchecked(493254510180952753532786) };
 
-                fn try_break(sender: &Sender<WorldAction>, location: &Location, coordinate: Coordinate, id: &MoveId, player: &mut PlayerCharacter) {
+                fn try_break(
+                    sender: &Sender<WorldAction>,
+                    location: &Location,
+                    coordinate: Coordinate,
+                    id: &MoveId,
+                    player: &mut PlayerCharacter,
+                ) {
                     if player
                         .trainer
                         .party
@@ -149,6 +156,16 @@ impl<R: Rng + SeedableRng + Clone> WorldMapManager<R> {
                     ROCK => try_break(&self.sender, &map.id, forward, ROCK_SMASH, player),
                     _ => (),
                 }
+            }
+
+            if let Some(item) = map.item_at(&forward) {
+                player.world.insert_object(&map.id, forward);
+
+                // fix lol
+
+                let bag = &mut player.trainer.bag;
+
+                bag.insert_saved(item.item);
             }
         }
     }

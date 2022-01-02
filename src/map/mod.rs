@@ -117,26 +117,13 @@ impl WorldMap {
                 let objects = self
                     .objects
                     .keys()
-                    .filter(|coordinate| {
-                        !player
-                            .world
-                            .objects
-                            .get(&self.id)
-                            .map(|coords| coords.contains(coordinate))
-                            .unwrap_or_default()
-                    })
+                    .filter(|coordinate| !player.world.contains_object(&self.id, coordinate))
                     .copied();
                 let items = self
                     .items
                     .iter()
                     .filter(|(coordinate, object)| {
-                        !object.hidden
-                            || !player
-                                .world
-                                .objects
-                                .get(&self.id)
-                                .map(|coords| coords.contains(&coordinate))
-                                .unwrap_or_default()
+                        !object.hidden || !player.world.contains_object(&self.id, coordinate)
                     })
                     .map(|(c, ..)| *c);
                 // find used locations

@@ -6,7 +6,7 @@ use crate::{
     character::npc::{trainer::BadgeId, Npc, NpcId},
     events::Wait,
     map::{battle::BattleEntry, warp::WarpDestination},
-    positions::{Location, Position, Coordinate},
+    positions::{Coordinate, Location, Position},
     script::ScriptId,
 };
 
@@ -59,6 +59,12 @@ pub struct WorldGlobalWildData {
 }
 
 impl WorldState {
+    pub fn contains_object(&self, location: &Location, coordinate: &Coordinate) -> bool {
+        self.objects
+            .get(location)
+            .map(|coords| coords.contains(coordinate))
+            .unwrap_or_default()
+    }
 
     pub fn insert_object(&mut self, location: &Location, coordinate: Coordinate) {
         if !self.objects.contains_key(location) {
@@ -67,7 +73,6 @@ impl WorldState {
         let objects = self.objects.get_mut(location).unwrap();
         objects.push(coordinate)
     }
-
 }
 
 impl WorldBattleState {
